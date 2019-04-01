@@ -14,46 +14,29 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 clf = SentimentClassifier()
 
 
-def sent(user, num_tweets):
-    data = []
+def sent(user, num_tweets, previous_data):
     non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
-    for user_tweet in tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended", timeout=999999).items(
-            num_tweets):
+    if len(previous_data) == 0:
+        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended",
+                                     timeout=999999).items(num_tweets)
+    else:
+        last_id = previous_data[0][1]
+        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id, tweet_mode="extended",
+                                     timeout=999999).items(num_tweets)
+    for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
             replies = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, result_type='recent', tweet_mode="extended",
-                                             timeout=999999).items(1000):
+                                             since_id=user_tweet.id, timeout=999999).items(1000):
                 if hasattr(reply_tweet, "in_reply_to_status_id_str"):
                     if reply_tweet.in_reply_to_status_id_str == user_tweet.id_str:
                         sentiment = clf.predict(reply_tweet.full_text)
-                        replies.append([reply_tweet.author.screen_name, reply_tweet.full_text, sentiment])
+                        replies.append([reply_tweet.author.screen_name, reply_tweet.full_text,
+                                        reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
             if len(replies) != 0:
                 data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies,
-                             mean([replies[replies.index(x)][2] for x in replies])])
-            else:
-                data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
-                             user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies, None])
-    pickle.dump(data, open(name+".pickle", "wb"))
-    return data
-
-
-def sent_since_id(user, num_tweets, tweet_id):
-    non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
-    for user_tweet in tweepy.Cursor(api.user_timeline, screen_name=user, since_id=tweet_id, tweet_mode="extended",
-                                    timeout=999999).items(num_tweets):
-        if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
-            replies = []
-            for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, result_type='recent', tweet_mode="extended",
-                                             timeout=999999).items(1000):
-                if hasattr(reply_tweet, "in_reply_to_status_id_str"):
-                    if reply_tweet.in_reply_to_status_id_str == user_tweet.id_str:
-                        sentiment = clf.predict(reply_tweet.full_text)
-                        replies.append([reply_tweet.author.screen_name, reply_tweet.full_text, sentiment])
-            if len(replies) != 0:
-                data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
-                             user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies,
-                             mean([replies[replies.index(x)][2] for x in replies])])
+                             mean([replies[replies.index(x)][4] for x in replies])])
             else:
                 data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies, None])
@@ -68,9 +51,10 @@ if __name__ == "__main__":
     try:
         with open(name + ".pickle", "rb") as data_load:
             data = pickle.load(data_load)
-        last_id = data[0][1]
-        print("Previous data found, downloading last " + str(num) + " tweets since ID " + str(last_id) + ": " + data[0][0])
-        tweet_data = sent_since_id(name, num, last_id)
+        print("Previous data found, downloading last " + str(num) + " tweets since ID " + str(data[0][1]) + ": " +
+              data[0][0])
+        tweet_data = sent(name, num, data)
     except IOError:
         print("No previous data found, downloading last " + str(num) + " tweets")
-        tweet_data = sent(name, num)
+        data = []
+        tweet_data = sent(name, num, data)
