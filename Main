@@ -10,7 +10,7 @@ with open("Keys.json", "r") as f:
 
 auth = tweepy.OAuthHandler(keys["consumer_token"], keys["consumer_token_secret"])
 auth.set_access_token(keys["access_token"], keys["access_token_secret"])
-api = tweepy.API(auth, wait_on_rate_limit=True)
+api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 clf = SentimentClassifier()
 
 
