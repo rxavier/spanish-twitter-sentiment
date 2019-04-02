@@ -7,7 +7,7 @@ from classifier import SentimentClassifier
 clf = SentimentClassifier()
 
 
-def sent(api, user, num_tweets, data):
+def sent_latest(api, user, num_tweets, data):
     non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
     if len(data) == 0:
         tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended",
