@@ -10,17 +10,16 @@ clf = SentimentClassifier()
 def sent_latest(api, user, num_tweets, data):
     non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
     if len(data) == 0:
-        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended",
-                                     timeout=999999).items(num_tweets)
+        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended").items(num_tweets)
     else:
         last_id = data[0][1]
         tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
-                                     tweet_mode="extended", timeout=999999).items(num_tweets)
+                                     tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
             replies = []
-            for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, result_type='recent', tweet_mode="extended",
-                                             since_id=user_tweet.id, timeout=999999).items(1000):
+            for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
+                                             since_id=user_tweet.id).items(1000):
                 if hasattr(reply_tweet, "in_reply_to_status_id_str"):
                     if reply_tweet.in_reply_to_status_id_str == user_tweet.id_str:
                         sentiment = clf.predict(reply_tweet.full_text)
@@ -42,12 +41,12 @@ def sent_previous(api, user, num_tweets, data):
     non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
     first_id = data[len(data)-1][1]
     tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id-1,
-                                 tweet_mode="extended", timeout=999999).items(num_tweets)
+                                 tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
             replies = []
-            for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, result_type='recent', tweet_mode="extended",
-                                             since_id=user_tweet.id, timeout=999999).items(1000):
+            for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
+                                             since_id=user_tweet.id).items(1000):
                 if hasattr(reply_tweet, "in_reply_to_status_id_str"):
                     if reply_tweet.in_reply_to_status_id_str == user_tweet.id_str:
                         sentiment = clf.predict(reply_tweet.full_text)
