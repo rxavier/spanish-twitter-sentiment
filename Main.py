@@ -35,6 +35,7 @@ def build_data(user_dict):
     for user in user_dict.values():
         with open("Pickles/" + user + ".p", "rb") as dl:
             full_data.update({user: pickle.load(dl)})
+    return full_data
 
 
 def get_previous(user_dict):
