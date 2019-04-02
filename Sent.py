@@ -1,28 +1,21 @@
 import tweepy
 import sys
 import pickle
-import json
 from statistics import mean
 from classifier import SentimentClassifier
 
-with open("Keys.json", "r") as f:
-    keys = json.load(f)
-
-auth = tweepy.OAuthHandler(keys["consumer_token"], keys["consumer_token_secret"])
-auth.set_access_token(keys["access_token"], keys["access_token_secret"])
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 clf = SentimentClassifier()
 
 
-def sent(user, num_tweets, previous_data):
+def sent(api, user, num_tweets, data):
     non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
-    if len(previous_data) == 0:
+    if len(data) == 0:
         tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended",
                                      timeout=999999).items(num_tweets)
     else:
-        last_id = previous_data[0][1]
-        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id, tweet_mode="extended",
-                                     timeout=999999).items(num_tweets)
+        last_id = data[0][1]
+        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
+                                     tweet_mode="extended", timeout=999999).items(num_tweets)
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
             replies = []
@@ -40,21 +33,6 @@ def sent(user, num_tweets, previous_data):
             else:
                 data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies, None])
-    with open(name + ".pickle", "wb") as data_dump:
+    with open("Pickles/" + user + ".p", "wb") as data_dump:
         pickle.dump(data, data_dump)
     return data
-
-
-if __name__ == "__main__":
-    num = 10
-    name = ""
-    try:
-        with open(name + ".pickle", "rb") as data_load:
-            data = pickle.load(data_load)
-        print("Previous data found, downloading last " + str(num) + " tweets since ID " + str(data[0][1]) + ": " +
-              data[0][0])
-        tweet_data = sent(name, num, data)
-    except IOError:
-        print("No previous data found, downloading last " + str(num) + " tweets")
-        data = []
-        tweet_data = sent(name, num, data)

@@ -4,3 +4,9 @@
 Keys\.json
 
 *.pickle
+
+goodpick/
+
+Pickles/
+
+__pycache__/
