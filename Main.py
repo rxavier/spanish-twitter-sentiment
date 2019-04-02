@@ -14,7 +14,6 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 num = 10
-full_data = []
 
 for user in candidates.values():
     try:
@@ -22,8 +21,14 @@ for user in candidates.values():
             data = pickle.load(data_load)
         print("Previous data found for " + user + ", downloading last " + str(num) + " tweets since tweet ID " +
               str(data[0][1]) + ": " + data[0][0])
-        full_data.append(Sent.sent(api, user, num, data))
+        Sent.sent(api, user, num, data)
     except IOError:
         print("No previous data found for " + user + ", downloading last " + str(num) + " tweets")
         data = []
-        full_data.append(Sent.sent(api, user, num, data))
+        Sent.sent(api, user, num, data)
+
+full_data = {}
+for user in candidates.values():
+    with open("Pickles/" + user + ".p", "rb") as dl:
+        data_aux = pickle.load(dl)
+    full_data.update({user: data_aux})
