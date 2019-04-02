@@ -30,5 +30,4 @@ for user in candidates.values():
 full_data = {}
 for user in candidates.values():
     with open("Pickles/" + user + ".p", "rb") as dl:
-        data_aux = pickle.load(dl)
-    full_data.update({user: data_aux})
+        full_data.update({user: pickle.load(dl)})
