@@ -39,6 +39,7 @@ def sent_latest(api, user, num_tweets, data):
 
 
 def sent_previous(api, user, num_tweets, data):
+    non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
     first_id = data[len(data)-1][1]
     tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id-1,
                                  tweet_mode="extended", timeout=999999).items(num_tweets)
