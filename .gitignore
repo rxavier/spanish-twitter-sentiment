@@ -10,3 +10,5 @@ goodpick/
 Pickles/
 
 __pycache__/
+
+*.p
