@@ -21,7 +21,8 @@ def sent_latest(api, user, num_tweets, data):
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
                 if hasattr(reply_tweet, "in_reply_to_status_id_str"):
-                    if reply_tweet.in_reply_to_status_id_str == user_tweet.id_str:
+                    if (reply_tweet.in_reply_to_status_id_str == user_tweet.id_str and
+                            reply_tweet.author.screen_name != user):
                         sentiment = clf.predict(reply_tweet.full_text)
                         replies.append([reply_tweet.author.screen_name, reply_tweet.full_text,
                                         reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
@@ -48,7 +49,8 @@ def sent_previous(api, user, num_tweets, data):
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
                 if hasattr(reply_tweet, "in_reply_to_status_id_str"):
-                    if reply_tweet.in_reply_to_status_id_str == user_tweet.id_str:
+                    if (reply_tweet.in_reply_to_status_id_str == user_tweet.id_str and
+                            reply_tweet.author.screen_name != user):
                         sentiment = clf.predict(reply_tweet.full_text)
                         replies.append([reply_tweet.author.screen_name, reply_tweet.full_text,
                                         reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
