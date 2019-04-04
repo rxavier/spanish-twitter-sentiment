@@ -16,7 +16,7 @@ def tweets_replies_last(api, user, num_tweets, tweets_data):
                                      tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
-                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 10):
+                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9):
             replies = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
@@ -44,7 +44,7 @@ def tweets_replies_previous(api, user, num_tweets, tweets_data):
                                  tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
-                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 10):
+                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9):
             replies = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
