@@ -1,5 +1,4 @@
 import tweepy
-import sys
 import pickle
 import datetime
 from statistics import mean
@@ -9,7 +8,6 @@ clf = SentimentClassifier()
 
 
 def sent_latest(api, user, num_tweets, data):
-    non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
     if len(data) == 0:
         tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended").items(num_tweets)
     else:
@@ -29,11 +27,11 @@ def sent_latest(api, user, num_tweets, data):
                         replies.append([reply_tweet.author.screen_name, reply_tweet.full_text,
                                         reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
             if len(replies) != 0:
-                data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
+                data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies,
                              mean([replies[replies.index(x)][4] for x in replies])])
             else:
-                data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
+                data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies, None])
     with open("Pickles/" + user + ".p", "wb") as data_dump:
         pickle.dump(data, data_dump)
@@ -41,7 +39,6 @@ def sent_latest(api, user, num_tweets, data):
 
 
 def sent_previous(api, user, num_tweets, data):
-    non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
     first_id = data[len(data)-1][1]
     tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id-1,
                                  tweet_mode="extended").items(num_tweets)
@@ -58,11 +55,11 @@ def sent_previous(api, user, num_tweets, data):
                         replies.append([reply_tweet.author.screen_name, reply_tweet.full_text,
                                         reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
             if len(replies) != 0:
-                data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
+                data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies,
                              mean([replies[replies.index(x)][4] for x in replies])])
             else:
-                data.append([user_tweet.full_text.translate(non_bmp_map), user_tweet.id, user_tweet.created_at,
+                data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
                              user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies, None])
     with open("Pickles/" + user + ".p", "wb") as data_dump:
         pickle.dump(data, data_dump)
