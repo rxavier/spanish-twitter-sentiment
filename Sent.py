@@ -64,3 +64,29 @@ def sent_previous(api, user, num_tweets, data):
     with open("Pickles/" + user + ".p", "wb") as data_dump:
         pickle.dump(data, data_dump)
     return data
+def replies_last(api, user, num_tweets, replies_data):
+    if len(replies_data) == 0:
+        reply_cursor = tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended").items(num_tweets)
+    else:
+        last_id = replies_data[0][2]
+        reply_cursor = tweepy.Cursor(api.search, q="to:" + user, since_id=last_id,
+                                     tweet_mode="extended").items(num_tweets)
+    for reply in reply_cursor:
+        sentiment = clf.predict(reply.full_text)
+        replies_data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
+                            reply.favorite_count, reply.retweet_count, sentiment])
+    with open("Pickles/replies_" + user + ".p", "wb") as data_dump:
+        pickle.dump(replies_data, data_dump)
+    return replies_data
+
+
+def replies_previous(api, user, num_tweets, replies_data):
+    first_id = replies_data[len(replies_data) - 1][2]
+    reply_cursor = tweepy.Cursor(api.search, q="to:" + user, max_id=first_id, tweet_mode="extended").items(num_tweets)
+    for reply in reply_cursor:
+        sentiment = clf.predict(reply.full_text)
+        replies_data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
+                            reply.favorite_count, reply.retweet_count, sentiment])
+    with open("Pickles/replies_" + user + ".p", "wb") as data_dump:
+        pickle.dump(replies_data, data_dump)
+    return replies_data
