@@ -1,6 +1,7 @@
 import tweepy
 import sys
 import pickle
+import datetime
 from statistics import mean
 from classifier import SentimentClassifier
 
@@ -16,7 +17,8 @@ def sent_latest(api, user, num_tweets, data):
         tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
                                      tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
-        if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
+        if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
+                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 10):
             replies = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
@@ -44,7 +46,8 @@ def sent_previous(api, user, num_tweets, data):
     tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id-1,
                                  tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
-        if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text):
+        if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
+                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 10):
             replies = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
