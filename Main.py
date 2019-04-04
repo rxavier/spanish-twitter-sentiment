@@ -11,31 +11,27 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def tweets_replies_last_loop(user_list, number_tweets):
+def tweets_replies_loop(user_list, number_tweets, previous=False):
     for user in user_list:
         try:
             with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
                 tweets_data = pickle.load(data_load)
-            print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
-                  " tweets since tweet ID " + str(tweets_data[0][1]) + ": " + tweets_data[0][0])
-            Sent.tweets_replies_last(api, user, number_tweets, tweets_data)
+            if previous is True:
+                print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
+                      " tweets prior to tweet ID " + str(tweets_data[len(tweets_data) - 1][1]) + ": " +
+                      tweets_data[len(tweets_data) - 1][0])
+                Sent.tweets_replies(api, user, number_tweets, tweets_data, previous=True)
+            else:
+                print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
+                      " tweets since tweet ID " + str(tweets_data[0][1]) + ": " + tweets_data[0][0])
+            Sent.tweets_replies(api, user, number_tweets, tweets_data, previous=False)
         except IOError:
-            print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
-            tweets_data = []
-            Sent.tweets_replies_last(api, user, number_tweets, tweets_data)
-
-
-def tweets_replies_previous_loop(user_list, number_tweets):
-    for user in user_list:
-        try:
-            with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
-                tweets_data = pickle.load(data_load)
-            print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
-                  " tweets prior to tweet ID " + str(tweets_data[len(tweets_data)-1][1]) + ": " +
-                  tweets_data[len(tweets_data)-1][0])
-            Sent.tweets_replies_previous(api, user, number_tweets, tweets_data)
-        except IOError:
-            print("Download some data first with tweets_replies_last_loop function")
+            if previous is True:
+                print("Download some data first with tweets_replies_last_loop function")
+            else:
+                print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
+                tweets_data = []
+                Sent.tweets_replies(api, user, number_tweets, tweets_data, previous=False)
 
 
 def replies_last_loop(user_list, number_replies):
