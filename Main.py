@@ -65,9 +65,17 @@ def replies_previous_loop(user_list, number_replies):
             print("Download some data first with replies_last_loop function")
 
 
-def build_data(user_dict):
-    full_data = {}
-    for user in user_dict.values():
-        with open("Pickles/" + user + ".p", "rb") as dl:
-            full_data.update({user: pickle.load(dl)})
-    return full_data
+def build_tweets(user_list):
+    full_tweets_data = {}
+    for user in user_list:
+        with open("Pickles/tweets_replies" + user + ".p", "rb") as dl:
+            full_tweets_data.update({user: pickle.load(dl)})
+    return full_tweets_data
+
+
+def build_replies(user_list):
+    full_replies_data = {}
+    for user in user_list:
+        with open("Pickles/replies" + user + ".p", "rb") as dl:
+            full_replies_data.update({user: pickle.load(dl)})
+    return full_replies_data
