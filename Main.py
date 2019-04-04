@@ -6,9 +6,6 @@ import pickle
 with open("Keys.json", "r") as f:
     keys = json.load(f)
 
-with open("Candidates.json", "r") as f:
-    candidates = json.load(f)
-
 auth = tweepy.OAuthHandler(keys["consumer_token"], keys["consumer_token_secret"])
 auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
