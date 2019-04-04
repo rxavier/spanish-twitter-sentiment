@@ -11,30 +11,58 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def get_latest(user_dict, number_tweets):
-    for user in user_dict.values():
+def tweets_replies_last_loop(user_list, number_tweets):
+    for user in user_list:
         try:
-            with open("Pickles/" + user + ".p", "rb") as data_load:
-                data = pickle.load(data_load)
-            print("Previous data found for " + user + ", downloading last " + str(number_tweets) +
-                  " tweets since tweet ID " + str(data[0][1]) + ": " + data[0][0])
-            Sent.sent_latest(api, user, number_tweets, data)
+            with open("Pickles/tweets_replies" + user + ".p", "rb") as data_load:
+                tweets_data = pickle.load(data_load)
+            print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
+                  " tweets since tweet ID " + str(tweets_data[0][1]) + ": " + tweets_data[0][0])
+            Sent.tweets_replies_last(api, user, number_tweets, tweets_data)
         except IOError:
             print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
-            data = []
-            Sent.sent_latest(api, user, number_tweets, data)
+            tweets_data = []
+            Sent.tweets_replies_last(api, user, number_tweets, tweets_data)
 
 
-def get_previous(user_dict, number_tweets):
-    for user in user_dict.values():
+def tweets_replies_previous_loop(user_list, number_tweets):
+    for user in user_list:
         try:
-            with open("Pickles/" + user + ".p", "rb") as data_load:
-                data = pickle.load(data_load)
-            print("Successfully loaded data for " + user + ", downloading " + str(number_tweets) +
-                  " tweets prior to tweet ID " + str(data[len(data)-1][1]) + ": " + data[len(data)-1][0])
-            Sent.sent_previous(api, user, number_tweets, data)
+            with open("Pickles/tweets_replies" + user + ".p", "rb") as data_load:
+                tweets_data = pickle.load(data_load)
+            print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
+                  " tweets prior to tweet ID " + str(tweets_data[len(tweets_data)-1][1]) + ": " +
+                  tweets_data[len(tweets_data)-1][0])
+            Sent.tweets_replies_previous(api, user, number_tweets, tweets_data)
         except IOError:
-            print("Download some data first with get_latest function")
+            print("Download some data first with tweets_replies_last_loop function")
+
+
+def replies_last_loop(user_list, number_replies):
+    for user in user_list:
+        try:
+            with open("Pickles/replies" + user + ".p", "rb") as data_load:
+                replies_data = pickle.load(data_load)
+            print("Previous replies found for " + user + ", downloading last " + str(number_replies) +
+                  " replies since tweet ID " + str(replies_data[0][2]) + ": " + replies_data[0][1])
+            Sent.replies_last(api, user, number_replies, replies_data)
+        except IOError:
+            print("No previous replies found for " + user + ", downloading last " + str(number_replies) + " replies")
+            replies_data = []
+            Sent.tweets_replies_last(api, user, number_replies, replies_data)
+
+
+def replies_previous_loop(user_list, number_replies):
+    for user in user_list:
+        try:
+            with open("Pickles/replies" + user + ".p", "rb") as data_load:
+                replies_data = pickle.load(data_load)
+            print("Successfully loaded replies for " + user + ", downloading " + str(number_replies) +
+                  " replies prior to tweet ID " + str(replies_data[len(replies_data) - 1][2]) + ": " +
+                  replies_data[len(replies_data) - 1][1])
+            Sent.replies_previous(api, user, number_replies, replies_data)
+        except IOError:
+            print("Download some data first with replies_last_loop function")
 
 
 def build_data(user_dict):
