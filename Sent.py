@@ -46,7 +46,7 @@ def tweets_replies(api, user, num_tweets, tweets_data, trim, previous=False):
                                     user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
                                     replies_list, None])
     with open("Pickles/tweets_replies_" + user + ".p", "wb") as data_dump:
-        pickle.dump(tweets_data, data_dump)
+        pickle.dump(sorted(tweets_data, key=lambda x: x[2], reverse=True), data_dump)
     return tweets_data
 
 
@@ -68,5 +68,5 @@ def replies(api, user, num_tweets, replies_data, previous=False):
             replies_data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
                                 reply.favorite_count, reply.retweet_count, sentiment])
     with open("Pickles/replies_" + user + ".p", "wb") as data_dump:
-        pickle.dump(replies_data, data_dump)
+        pickle.dump(sorted(replies_data, key=lambda x: x[2], reverse=True), data_dump)
     return replies_data

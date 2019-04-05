@@ -64,7 +64,7 @@ def build_tweets(user_list):
     full_tweets_data = {}
     for user in user_list:
         with open("Pickles/tweets_replies_" + user + ".p", "rb") as dl:
-            full_tweets_data.update({user: sorted(pickle.load(dl), key=lambda x: x[2], reverse=True)})
+            full_tweets_data.update({user: pickle.load(dl)})
         full_tweets_data_df = pd.DataFrame(full_tweets_data[user])[[0, 7, 3, 4, 5, 2, 1]]
     return full_tweets_data, full_tweets_data_df
 
@@ -73,7 +73,7 @@ def build_replies(user_list):
     full_replies_data = {}
     for user in user_list:
         with open("Pickles/replies_" + user + ".p", "rb") as dl:
-            full_replies_data.update({user: sorted(pickle.load(dl), key=lambda x: x[2], reverse=True)})
+            full_replies_data.update({user: pickle.load(dl)})
     return full_replies_data
 
 
