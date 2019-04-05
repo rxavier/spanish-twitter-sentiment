@@ -69,17 +69,13 @@ def build_tweets(user_list):
     return full_tweets_data, full_tweets_data_df
 
 
-def build_replies(user_list):
+def build_replies(user_list, num_obs):
     full_replies_data = {}
     for user in user_list:
         with open("Pickles/replies_" + user + ".p", "rb") as dl:
             full_replies_data.update({user: pickle.load(dl)})
-    return full_replies_data
-
-
-def mean_user(replies_dict, num_obs):
     means_dict = {}
-    for user in replies_dict.keys():
-        replies_list = replies_dict[user]
+    for user in full_replies_data.keys():
+        replies_list = full_replies_data[user]
         means_dict.update({user: mean([x[6] for x in replies_list[0:num_obs]])})
-    return means_dict
+    return full_replies_data, means_dict
