@@ -2,6 +2,7 @@ import Sent
 import tweepy
 import json
 import pickle
+import pandas as pd
 from statistics import mean
 
 with open("Keys.json", "r") as f:
@@ -64,7 +65,8 @@ def build_tweets(user_list):
     for user in user_list:
         with open("Pickles/tweets_replies_" + user + ".p", "rb") as dl:
             full_tweets_data.update({user: sorted(pickle.load(dl), key=lambda x: x[2], reverse=True)})
-    return full_tweets_data
+        full_tweets_data_df = pd.DataFrame(full_tweets_data[user])[[0, 7, 3, 4, 5, 2, 1]]
+    return full_tweets_data, full_tweets_data_df
 
 
 def build_replies(user_list):
