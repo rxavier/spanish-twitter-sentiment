@@ -17,23 +17,46 @@ def tweets_replies_loop(user_list, number_tweets, trim, previous=False):
     for user in user_list:
         try:
             with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
+                tweets_replies_data = pickle.load(data_load)
+            if previous is True:
+                print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
+                      " tweets prior to tweet ID " + str(tweets_replies_data[len(tweets_replies_data) - 1][1]) + ": " +
+                      tweets_replies_data[len(tweets_replies_data) - 1][0])
+                Sent.tweets_replies(api, user, number_tweets, tweets_replies_data, trim, previous=True)
+            else:
+                print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
+                      " tweets since tweet ID " + str(tweets_replies_data[0][1]) + ": " + tweets_replies_data[0][0])
+            Sent.tweets_replies(api, user, number_tweets, tweets_replies_data, trim, previous=False)
+        except IOError:
+            if previous is True:
+                print("Download some data first with tweets_replies_last_loop function")
+            else:
+                print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
+                tweets_replies_data = []
+                Sent.tweets_replies(api, user, number_tweets, tweets_replies_data, trim, previous=False)
+
+
+def tweets_loop(user_list, number_tweets, trim, previous=False):
+    for user in user_list:
+        try:
+            with open("Pickles/tweets_" + user + ".p", "rb") as data_load:
                 tweets_data = pickle.load(data_load)
             if previous is True:
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
                       " tweets prior to tweet ID " + str(tweets_data[len(tweets_data) - 1][1]) + ": " +
                       tweets_data[len(tweets_data) - 1][0])
-                Sent.tweets_replies(api, user, number_tweets, tweets_data, trim, previous=True)
+                Sent.tweets(api, user, number_tweets, tweets_data, trim, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
                       " tweets since tweet ID " + str(tweets_data[0][1]) + ": " + tweets_data[0][0])
-            Sent.tweets_replies(api, user, number_tweets, tweets_data, trim, previous=False)
+                Sent.tweets(api, user, number_tweets, tweets_data, trim, previous=False)
         except IOError:
             if previous is True:
                 print("Download some data first with tweets_replies_last_loop function")
             else:
                 print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
                 tweets_data = []
-                Sent.tweets_replies(api, user, number_tweets, tweets_data, trim, previous=False)
+                Sent.tweets(api, user, number_tweets, tweets_data, trim, previous=False)
 
 
 def replies_loop(user_list, number_replies, previous=False):
@@ -60,13 +83,25 @@ def replies_loop(user_list, number_replies, previous=False):
                 Sent.replies(api, user, number_replies, replies_data)
 
 
-def build_tweets(user_list):
-    full_tweets_data = {}
+def build_tweets_replies(user_list):
+    full_tweets_replies_data = {}
     for user in user_list:
         with open("Pickles/tweets_replies_" + user + ".p", "rb") as dl:
+            full_tweets_replies_data.update({user: pickle.load(dl)})
+        full_tweets_replies_data_df = pd.DataFrame(full_tweets_replies_data[user])[[0, 7, 3, 4, 5, 2, 1]]
+    return full_tweets_replies_data, full_tweets_replies_data_df
+
+
+def build_tweets(user_list, num_obs):
+    full_tweets_data = {}
+    for user in user_list:
+        with open("Pickles/tweets_" + user + ".p", "rb") as dl:
             full_tweets_data.update({user: pickle.load(dl)})
-        full_tweets_data_df = pd.DataFrame(full_tweets_data[user])[[0, 7, 3, 4, 5, 2, 1]]
-    return full_tweets_data, full_tweets_data_df
+    means_dict = {}
+    for user in full_tweets_data.keys():
+        tweets_list = full_tweets_data[user]
+        means_dict.update({user: mean([x[5] for x in tweets_list[0:num_obs]])})
+    return full_tweets_data, means_dict
 
 
 def build_replies(user_list, num_obs):
