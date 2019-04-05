@@ -2,6 +2,7 @@ import Sent
 import tweepy
 import json
 import pickle
+from statistics import mean
 
 with open("Keys.json", "r") as f:
     keys = json.load(f)
@@ -72,3 +73,11 @@ def build_replies(user_list):
         with open("Pickles/replies_" + user + ".p", "rb") as dl:
             full_replies_data.update({user: sorted(pickle.load(dl), key=lambda x: x[2], reverse=True)})
     return full_replies_data
+
+
+def mean_user(replies_dict, num_obs):
+    means_dict = {}
+    for user in replies_dict.keys():
+        replies_list = replies_dict[user]
+        means_dict.update({user: mean([x[6] for x in replies_list[0:num_obs]])})
+    return means_dict
