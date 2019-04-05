@@ -11,7 +11,7 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def tweets_replies_loop(user_list, number_tweets, previous=False):
+def tweets_replies_loop(user_list, number_tweets, trim, previous=False):
     for user in user_list:
         try:
             with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
@@ -20,18 +20,18 @@ def tweets_replies_loop(user_list, number_tweets, previous=False):
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
                       " tweets prior to tweet ID " + str(tweets_data[len(tweets_data) - 1][1]) + ": " +
                       tweets_data[len(tweets_data) - 1][0])
-                Sent.tweets_replies(api, user, number_tweets, tweets_data, previous=True)
+                Sent.tweets_replies(api, user, number_tweets, tweets_data, trim, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
                       " tweets since tweet ID " + str(tweets_data[0][1]) + ": " + tweets_data[0][0])
-            Sent.tweets_replies(api, user, number_tweets, tweets_data, previous=False)
+            Sent.tweets_replies(api, user, number_tweets, tweets_data, trim, previous=False)
         except IOError:
             if previous is True:
                 print("Download some data first with tweets_replies_last_loop function")
             else:
                 print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
                 tweets_data = []
-                Sent.tweets_replies(api, user, number_tweets, tweets_data, previous=False)
+                Sent.tweets_replies(api, user, number_tweets, tweets_data, trim, previous=False)
 
 
 def replies_loop(user_list, number_replies, previous=False):
@@ -52,7 +52,8 @@ def replies_loop(user_list, number_replies, previous=False):
             if previous is True:
                 print("Download some data first with replies_last_loop function")
             else:
-                print("No previous replies found for " + user + ", downloading last " + str(number_replies) + " replies")
+                print("No previous replies found for " + user + ", downloading last " + str(number_replies) +
+                      " replies")
                 replies_data = []
                 Sent.replies(api, user, number_replies, replies_data)
 

@@ -7,7 +7,7 @@ from classifier import SentimentClassifier
 clf = SentimentClassifier()
 
 
-def tweets_replies(api, user, num_tweets, tweets_data, previous=False):
+def tweets_replies(api, user, num_tweets, tweets_data, trim, previous=False):
     if previous is True:
         first_id = tweets_data[len(tweets_data) - 1][1]
         tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
@@ -15,6 +15,12 @@ def tweets_replies(api, user, num_tweets, tweets_data, previous=False):
     else:
         if len(tweets_data) == 0:
             tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended").items(num_tweets)
+        elif trim > 0:
+            tweets_data = tweets_data[trim:]
+            last_id = tweets_data[0][1]
+            print("Trimming " + str(trim) + " tweets. Last tweet considered is " + tweets_data[0][0])
+            tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
+                                         tweet_mode="extended").items(num_tweets)
         else:
             last_id = tweets_data[0][1]
             tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
