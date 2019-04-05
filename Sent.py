@@ -28,22 +28,23 @@ def tweets_replies(api, user, num_tweets, tweets_data, trim, previous=False):
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
                 ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9):
-            replies = []
+            replies_list = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
                 if hasattr(reply_tweet, "in_reply_to_status_id_str"):
                     if (reply_tweet.in_reply_to_status_id_str == user_tweet.id_str and
                             reply_tweet.author.screen_name != user):
                         sentiment = clf.predict(reply_tweet.full_text)
-                        replies.append([reply_tweet.author.screen_name, reply_tweet.full_text,
-                                        reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
-            if len(replies) != 0:
+                        replies_list.append([reply_tweet.author.screen_name, reply_tweet.full_text,
+                                            reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
+            if len(replies_list) != 0:
                 tweets_data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
-                                    user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies,
-                                    mean([replies[replies.index(x)][4] for x in replies])])
+                                    user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
+                                    replies_list, mean([replies_list[replies_list.index(x)][4] for x in replies_list])])
             else:
                 tweets_data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
-                                    user_tweet.favorite_count, user_tweet.retweet_count, len(replies), replies, None])
+                                    user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
+                                    replies_list, None])
     with open("Pickles/tweets_replies_" + user + ".p", "wb") as data_dump:
         pickle.dump(tweets_data, data_dump)
     return tweets_data
