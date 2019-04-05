@@ -27,7 +27,8 @@ def tweets_replies(api, user, num_tweets, tweets_data, trim, previous=False):
                                          tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_cursor:
         if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
-                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9):
+                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9) and \
+                not user_tweet.full_text.startswith("@"):
             replies_list = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
