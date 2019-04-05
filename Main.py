@@ -85,23 +85,31 @@ def replies_loop(user_list, number_replies, previous=False):
 
 def build_tweets_replies(user_list):
     full_tweets_replies_data = {}
+    long_tweets_replies = []
     for user in user_list:
         with open("Pickles/tweets_replies_" + user + ".p", "rb") as dl:
             full_tweets_replies_data.update({user: pickle.load(dl)})
-        full_tweets_replies_data_df = pd.DataFrame(full_tweets_replies_data[user])[[0, 7, 3, 4, 5, 2, 1]]
-    return full_tweets_replies_data, full_tweets_replies_data_df
+        for tweets in full_tweets_replies_data[user]:
+            long_tweets_replies.append([user, tweets[0], tweets[7], tweets[3], tweets[4],
+                                        tweets[5], tweets[2], tweets[1]])
+        df = pd.DataFrame(long_tweets_replies)
+    return full_tweets_replies_data, df
 
 
 def build_tweets(user_list, num_obs):
     full_tweets_data = {}
+    long_tweets = []
     for user in user_list:
         with open("Pickles/tweets_" + user + ".p", "rb") as dl:
             full_tweets_data.update({user: pickle.load(dl)})
+        for tweets in full_tweets_data[user]:
+            long_tweets.append([user, tweets[0], tweets[1], tweets[2], tweets[3], tweets[4], tweets[5]])
+    df = pd.DataFrame(long_tweets)
     means_dict = {}
     for user in full_tweets_data.keys():
         tweets_list = full_tweets_data[user]
         means_dict.update({user: mean([x[5] for x in tweets_list[0:num_obs]])})
-    return full_tweets_data, means_dict
+    return full_tweets_data, means_dict, df
 
 
 def build_replies(user_list, num_obs):
