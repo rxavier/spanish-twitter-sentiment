@@ -2,6 +2,7 @@ import Sent
 import tweepy
 import json
 import pickle
+import sys
 import pandas as pd
 from statistics import mean
 
@@ -83,7 +84,7 @@ def replies_loop(user_list, number_replies, previous=False):
                 Sent.replies(api, user, number_replies, replies_data)
 
 
-def build_tweets_replies(user_list):
+def build_user(user_list):
     full_tweets_replies_data = {}
     long_tweets_replies = []
     for user in user_list:
@@ -96,29 +97,30 @@ def build_tweets_replies(user_list):
     return full_tweets_replies_data, df
 
 
-def build_tweets(user_list, num_obs):
-    full_tweets_data = {}
-    long_tweets = []
-    for user in user_list:
-        with open("Pickles/tweets_" + user + ".p", "rb") as dl:
-            full_tweets_data.update({user: pickle.load(dl)})
-        for tweets in full_tweets_data[user]:
-            long_tweets.append([user, tweets[0], tweets[1], tweets[2], tweets[3], tweets[4], tweets[5]])
-    df = pd.DataFrame(long_tweets)
-    means_dict = {}
-    for user in full_tweets_data.keys():
-        tweets_list = full_tweets_data[user]
-        means_dict.update({user: mean([x[5] for x in tweets_list[0:num_obs]])})
-    return full_tweets_data, means_dict, df
-
-
-def build_replies(user_list, num_obs):
-    full_replies_data = {}
-    for user in user_list:
-        with open("Pickles/replies_" + user + ".p", "rb") as dl:
-            full_replies_data.update({user: pickle.load(dl)})
-    means_dict = {}
-    for user in full_replies_data.keys():
-        replies_list = full_replies_data[user]
-        means_dict.update({user: mean([x[6] for x in replies_list[0:num_obs]])})
-    return full_replies_data, means_dict
+def build_tweets_replies(user_list, num_obs, type_data="replies"):
+    named_data = {}
+    long_data = []
+    if type_data is "tweets":
+        for user in user_list:
+            with open("Pickles/tweets_" + user + ".p", "rb") as dl:
+                named_data.update({user: pickle.load(dl)})
+            for tweets in named_data[user]:
+                long_data.append([user, tweets[0], tweets[1], tweets[2], tweets[3], tweets[4], tweets[5]])
+        df_tweets = pd.DataFrame(long_data)
+        mean_tweets_user = {}
+        for user in named_data.keys():
+            tweets_user = named_data[user]
+            mean_tweets_user.update({user: mean([x[5] for x in tweets_user[0:num_obs]])})
+        return named_data, mean_tweets_user, df_tweets
+    elif type_data is "replies":
+        for user in user_list:
+            with open("Pickles/replies_" + user + ".p", "rb") as dl:
+                named_data.update({user: pickle.load(dl)})
+        mean_replies_user = {}
+        for user in named_data.keys():
+            replies_list = named_data[user]
+            mean_replies_user.update({user: mean([x[6] for x in replies_list[0:num_obs]])})
+        return named_data, mean_replies_user, None
+    else:
+        print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
+        sys.exit()
