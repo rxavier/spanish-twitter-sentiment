@@ -113,6 +113,7 @@ def build_tweets_replies(user_list, num_obs, type_data="replies"):
             for tweets in named_data[user]:
                 long_data.append([user, tweets[0], tweets[1], tweets[2], tweets[3], tweets[4], tweets[5]])
         df_tweets = pd.DataFrame(long_data)
+        df_tweets.columns = ["User", "Tweet", "ID", "Date", "Likes", "Retweets", "Sentiment"]
         mean_tweets_user = {}
         for user in named_data.keys():
             tweets_user = named_data[user]
