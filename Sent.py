@@ -7,7 +7,7 @@ from classifier import SentimentClassifier
 clf = SentimentClassifier()
 
 
-def tweets_replies(api, user, num_tweets, tweets_replies_data, trim, previous=False):
+def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
     if previous is True:
         first_id = tweets_replies_data[len(tweets_replies_data) - 1][1]
         tweet_reply_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
@@ -53,52 +53,51 @@ def tweets_replies(api, user, num_tweets, tweets_replies_data, trim, previous=Fa
     return tweets_replies_data
 
 
-def replies(api, user, num_tweets, replies_data, previous=False):
-    if previous is True:
-        first_id = replies_data[len(replies_data) - 1][2]
-        reply_cursor = tweepy.Cursor(api.search, q="to:" + user, max_id=first_id, tweet_mode="extended").items(
-            num_tweets)
-    else:
-        if len(replies_data) == 0:
-            reply_cursor = tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended").items(num_tweets)
+def tweets_replies(api, user, number_elements, data, trim=0, type_data="replies", previous=False):
+    if type_data is "replies":
+        if previous is True:
+            first_id = data[len(data) - 1][2]
+            reply_cursor = tweepy.Cursor(api.search, q="to:" + user, max_id=first_id, tweet_mode="extended").items(
+                number_elements)
         else:
-            last_id = replies_data[0][2]
-            reply_cursor = tweepy.Cursor(api.search, q="to:" + user, since_id=last_id,
-                                         tweet_mode="extended").items(num_tweets)
-    for reply in reply_cursor:
-        if not reply.retweeted and ("RT @" not in reply.full_text):
-            sentiment = clf.predict(reply.full_text)
-            replies_data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
-                                reply.favorite_count, reply.retweet_count, sentiment])
-    with open("Pickles/replies_" + user + ".p", "wb") as data_dump:
-        pickle.dump(sorted(replies_data, key=lambda x: x[2], reverse=True), data_dump)
-    return replies_data
-
-
-def tweets(api, user, num_tweets, tweets_data, trim, previous=False):
-    if previous is True:
-        first_id = tweets_data[len(tweets_data) - 1][1]
-        tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
-                                     tweet_mode="extended").items(num_tweets)
-    else:
-        if len(tweets_data) == 0:
-            tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended").items(num_tweets)
-        elif trim > 0:
-            tweets_replies_data = tweets_data[trim:]
-            last_id = tweets_replies_data[0][1]
-            print("Trimming " + str(trim) + " tweets. Last tweet considered is " + tweets_replies_data[0][0])
-            tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
-                                         tweet_mode="extended").items(num_tweets)
+            if len(data) == 0:
+                reply_cursor = tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended").items(number_elements)
+            else:
+                last_id = data[0][2]
+                reply_cursor = tweepy.Cursor(api.search, q="to:" + user, since_id=last_id,
+                                             tweet_mode="extended").items(number_elements)
+        for reply in reply_cursor:
+            if not reply.retweeted and ("RT @" not in reply.full_text):
+                sentiment = clf.predict(reply.full_text)
+                data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
+                             reply.favorite_count, reply.retweet_count, sentiment])
+        with open("Pickles/replies_" + user + ".p", "wb") as data_dump:
+            pickle.dump(sorted(data, key=lambda x: x[2], reverse=True), data_dump)
+        return data
+    elif type_data is "tweets":
+        if previous is True:
+            first_id = data[len(data) - 1][1]
+            tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
+                                         tweet_mode="extended").items(number_elements)
         else:
-            last_id = tweets_data[0][1]
-            tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
-                                         tweet_mode="extended").items(num_tweets)
-    tweets_data = []
-    for tweet in tweet_cursor:
-        if not tweet.retweeted and ("RT @" not in tweet.full_text) and not tweet.full_text.startswith("@"):
-            sentiment = clf.predict(tweet.full_text)
-            tweets_data.append([tweet.full_text, tweet.id, tweet.created_at,
-                                tweet.favorite_count, tweet.retweet_count, sentiment])
-    with open("Pickles/tweets_" + user + ".p", "wb") as data_dump:
-        pickle.dump(sorted(tweets_data, key=lambda x: x[2], reverse=True), data_dump)
-    return tweets_data
+            if len(data) == 0:
+                tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, tweet_mode="extended").items(
+                    number_elements)
+            elif trim > 0:
+                data = data[trim:]
+                last_id = data[0][1]
+                print("Trimming " + str(trim) + " tweets. Last tweet considered is " + data[0][0])
+                tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
+                                             tweet_mode="extended").items(number_elements)
+            else:
+                last_id = data[0][1]
+                tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
+                                             tweet_mode="extended").items(number_elements)
+        for tweet in tweet_cursor:
+            if not tweet.retweeted and ("RT @" not in tweet.full_text) and not tweet.full_text.startswith("@"):
+                sentiment = clf.predict(tweet.full_text)
+                data.append([tweet.full_text, tweet.id, tweet.created_at,
+                            tweet.favorite_count, tweet.retweet_count, sentiment])
+        with open("Pickles/tweets_" + user + ".p", "wb") as data_dump:
+            pickle.dump(sorted(data, key=lambda x: x[2], reverse=True), data_dump)
+        return data
