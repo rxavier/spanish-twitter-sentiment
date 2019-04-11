@@ -4,6 +4,7 @@ import json
 import pickle
 import sys
 import pandas as pd
+import seaborn as sns
 from statistics import mean
 
 with open("Keys.json", "r") as f:
@@ -42,7 +43,8 @@ def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
         return None, None
 
 
-def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0, type_data="replies", previous=False, build=False):
+def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
+                        type_data="replies", previous=False, build=False):
     if type_data is "replies":
         for user in user_list:
             try:
@@ -129,6 +131,7 @@ def build_tweets_replies(user_list, mean_obs, type_data="replies"):
                 long_data.append([user, tweets[0], tweets[1], tweets[2], tweets[3], tweets[4], tweets[5]])
         df_tweets = pd.DataFrame(long_data)
         df_tweets.columns = ["User", "Tweet", "ID", "Date", "Likes", "Retweets", "Sentiment"]
+        df_tweets["Date"] = pd.to_datetime(df_tweets["Date"])
         mean_tweets_user = {}
         for user in named_data.keys():
             tweets_user = named_data[user]
@@ -146,3 +149,36 @@ def build_tweets_replies(user_list, mean_obs, type_data="replies"):
     else:
         print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
         sys.exit()
+
+
+def make_plots(data, user_list, start_date=None, end_date=None, window=7, operation="mean"):
+    proc_df = data[["User", "Date", "Likes", "Retweets"]]
+    resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
+    if operation == "mean":
+        likes = resample_df.groupby(level=0)["Likes"].apply(
+            lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Weekly Likes")
+        retweets = resample_df.groupby(level=0)["Retweets"].apply(
+            lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Weekly Retweets")
+    elif operation == "sum":
+        likes = resample_df.groupby(level=0)["Likes"].apply(
+            lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Weekly Likes")
+        retweets = resample_df.groupby(level=0)["Retweets"].apply(
+            lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Weekly Retweets")
+    else:
+        print("Only \"sum\" and \"mean\" are accepted operations")
+        sys.exit()
+    merged_df = pd.merge(likes, retweets, on=["Date", "User"],
+                         how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
+    long = pd.melt(merged_df, id_vars=["User", "Date"],
+                   value_vars=["Weekly Likes", "Weekly Retweets"], value_name="Values")
+    if start_date is None:
+        start_date = min(long["Date"])
+    if end_date is None:
+        end_date = max(long["Date"])
+    long_filter = long.loc[(long["Date"] >= start_date) &
+                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by="Date")
+
+    sns.set(style="darkgrid")
+    plot = sns.relplot(x="Date", y="Values", hue="User", col="variable", kind="line",
+                       data=long_filter)
+    plot.set_xticklabels(rotation=90)
