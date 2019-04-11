@@ -117,7 +117,7 @@ def build_tweets_replies(user_list, num_obs, type_data="replies"):
         mean_tweets_user = {}
         for user in named_data.keys():
             tweets_user = named_data[user]
-            mean_tweets_user.update({user: mean([x[5] for x in tweets_user[0:num_obs]])})
+            mean_tweets_user.update({user: mean([x[5] for x in tweets_user[0:num_obs] if x[5] is not None])})
         return named_data, mean_tweets_user, df_tweets
     elif type_data is "replies":
         for user in user_list:
@@ -126,7 +126,7 @@ def build_tweets_replies(user_list, num_obs, type_data="replies"):
         mean_replies_user = {}
         for user in named_data.keys():
             replies_list = named_data[user]
-            mean_replies_user.update({user: mean([x[6] for x in replies_list[0:num_obs]])})
+            mean_replies_user.update({user: mean([x[6] for x in replies_list[0:num_obs] if x[6] is not None])})
         return named_data, mean_replies_user, None
     else:
         print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
