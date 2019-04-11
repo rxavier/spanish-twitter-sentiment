@@ -14,7 +14,7 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def user_loop(user_list, number_tweets, trim=0, previous=False):
+def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
     for user in user_list:
         try:
             with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
@@ -35,9 +35,14 @@ def user_loop(user_list, number_tweets, trim=0, previous=False):
                 print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
                 user_data = []
                 Sent.user_data(api, user, number_tweets, user_data, trim, previous=False)
+    if build is True:
+        a, b = build_user(user_list)
+        return a, b
+    else:
+        return None, None
 
 
-def tweets_replies_loop(user_list, number_elements, trim=0, type_data="replies", previous=False):
+def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0, type_data="replies", previous=False, build=False):
     if type_data is "replies":
         for user in user_list:
             try:
@@ -60,6 +65,11 @@ def tweets_replies_loop(user_list, number_elements, trim=0, type_data="replies",
                           " replies")
                     replies_data = []
                     Sent.tweets_replies(api, user, number_elements, replies_data, type_data="replies", previous=False)
+        if build is True:
+            a, b, c = build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
+            return a, b, c
+        else:
+            return None, None, None
     elif type_data is "tweets":
         for user in user_list:
             try:
@@ -85,9 +95,14 @@ def tweets_replies_loop(user_list, number_elements, trim=0, type_data="replies",
                     tweets_data = []
                     Sent.tweets_replies(api, user, number_elements, tweets_data, trim, type_data="tweets",
                                         previous=False)
+        if build is True:
+            a, b, c = build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
+            return a, b, c
+        else:
+            return None, None, None
     else:
-        print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
-        sys.exit()
+        print("Only \"tweets\" and \"replies\" are accepted type_data")
+        return None, None, None
 
 
 def build_user(user_list):
@@ -103,7 +118,7 @@ def build_user(user_list):
     return full_tweets_replies_data, user_df
 
 
-def build_tweets_replies(user_list, num_obs, type_data="replies"):
+def build_tweets_replies(user_list, mean_obs, type_data="replies"):
     named_data = {}
     long_data = []
     if type_data is "tweets":
