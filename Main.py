@@ -163,9 +163,9 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
     elif operation == "sum":
         resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").sum())
         likes = resample_df.groupby(level=0)["Likes"].apply(
-            lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Weekly Likes")
+            lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Likes")
         retweets = resample_df.groupby(level=0)["Retweets"].apply(
-            lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Weekly Retweets")
+            lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Retweets")
     else:
         print("Only \"sum\" and \"mean\" are accepted operations")
         sys.exit()
