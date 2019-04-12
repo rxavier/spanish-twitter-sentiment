@@ -5,6 +5,7 @@ import pickle
 import sys
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 from statistics import mean
 
 with open("Keys.json", "r") as f:
@@ -179,7 +180,10 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
     long_filter = long.loc[(long["Date"] >= start_date) &
                            (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by="Date")
 
-    sns.set(style="darkgrid")
-    plot = sns.relplot(x="Date", y="Values", hue="User", col="variable", kind="line",
-                       data=long_filter)
-    plot.set_xticklabels(rotation=90)
+    sns.set(style="darkgrid", rc={"lines.linewidth": 2})
+    g = sns.FacetGrid(long_filter, col="variable", hue="User", sharey=False)
+    long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m"))
+    x_axis_labels = long_filter.Date.unique()
+    g = g.map(plt.plot, "Date", "Values").set(xticks=x_axis_labels[0:len(x_axis_labels):spacing],
+                                              xticklabels=x_axis_labels[0:len(x_axis_labels):spacing])
+    g.set_xticklabels(rotation=90)
