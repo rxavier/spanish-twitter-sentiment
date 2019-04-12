@@ -186,4 +186,5 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
     x_axis_labels = long_filter.Date.unique()
     g = g.map(plt.plot, "Date", "Values").set(xticks=x_axis_labels[0:len(x_axis_labels):spacing],
                                               xticklabels=x_axis_labels[0:len(x_axis_labels):spacing])
+    g.add_legend()
     g.set_xticklabels(rotation=90)
