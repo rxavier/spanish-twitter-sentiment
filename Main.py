@@ -182,7 +182,7 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
 
     sns.set(style="darkgrid", rc={"lines.linewidth": 2})
     g = sns.FacetGrid(long_filter, col="variable", hue="User", sharey=False)
-    long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m"))
+    long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m-%y"))
     x_axis_labels = long_filter.Date.unique()
     g = g.map(plt.plot, "Date", "Values").set(xticks=x_axis_labels[0:len(x_axis_labels):spacing],
                                               xticklabels=x_axis_labels[0:len(x_axis_labels):spacing])
