@@ -157,9 +157,9 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
     if operation == "average":
         resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
         likes = resample_df.groupby(level=0)["Likes"].apply(
-            lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Weekly Likes")
+            lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Likes")
         retweets = resample_df.groupby(level=0)["Retweets"].apply(
-            lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Weekly Retweets")
+            lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Retweets")
     elif operation == "sum":
         resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").sum())
         likes = resample_df.groupby(level=0)["Likes"].apply(
@@ -172,7 +172,7 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
     merged_df = pd.merge(likes, retweets, on=["Date", "User"],
                          how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
     long = pd.melt(merged_df, id_vars=["User", "Date"],
-                   value_vars=["Weekly Likes", "Weekly Retweets"], value_name="Values")
+                   value_vars=["Likes", "Retweets"], value_name="Values")
     if start_date is None:
         start_date = min(long["Date"])
     if end_date is None:
