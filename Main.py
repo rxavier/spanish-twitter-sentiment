@@ -160,12 +160,14 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
             lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Likes")
         retweets = resample_df.groupby(level=0)["Retweets"].apply(
             lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Retweets")
+        title = "Average"
     elif operation == "sum":
         resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").sum())
         likes = resample_df.groupby(level=0)["Likes"].apply(
             lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Likes")
         retweets = resample_df.groupby(level=0)["Retweets"].apply(
             lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Retweets")
+        title = "Sum"
     else:
         print("Only \"sum\" and \"mean\" are accepted operations")
         sys.exit()
@@ -188,3 +190,5 @@ def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacin
                                               xticklabels=x_axis_labels[0:len(x_axis_labels):spacing])
     g.add_legend()
     g.set_xticklabels(rotation=90)
+    plt.subplots_adjust(top=0.9)
+    g.fig.suptitle(title + " of likes and retweets, last " + str(window) + " days")
