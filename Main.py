@@ -151,15 +151,16 @@ def build_tweets_replies(user_list, mean_obs, type_data="replies"):
         sys.exit()
 
 
-def make_plots(data, user_list, start_date=None, end_date=None, window=7, operation="mean"):
+def make_plots(data, user_list, start_date=None, end_date=None, window=7, spacing=7, operation="average"):
     proc_df = data[["User", "Date", "Likes", "Retweets"]]
-    resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
-    if operation == "mean":
+    if operation == "average":
+        resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
         likes = resample_df.groupby(level=0)["Likes"].apply(
             lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Weekly Likes")
         retweets = resample_df.groupby(level=0)["Retweets"].apply(
             lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Weekly Retweets")
     elif operation == "sum":
+        resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").sum())
         likes = resample_df.groupby(level=0)["Likes"].apply(
             lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Weekly Likes")
         retweets = resample_df.groupby(level=0)["Retweets"].apply(
