@@ -38,8 +38,7 @@ def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
                 user_data = []
                 Sent.user_data(api, user, number_tweets, user_data, trim, previous=False)
     if build is True:
-        a, b = build_user(user_list)
-        return a, b
+        return build_user(user_list)
     else:
         return None, None
 
@@ -69,8 +68,7 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
                     replies_data = []
                     Sent.tweets_replies(api, user, number_elements, replies_data, type_data="replies", previous=False)
         if build is True:
-            a, b, c = build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
-            return a, b, c
+            return build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
         else:
             return None, None, None
     elif type_data is "tweets":
@@ -99,8 +97,7 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
                     Sent.tweets_replies(api, user, number_elements, tweets_data, trim, type_data="tweets",
                                         previous=False)
         if build is True:
-            a, b, c = build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
-            return a, b, c
+            return build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
         else:
             return None, None, None
     else:
