@@ -20,23 +20,23 @@ def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
     for user in user_list:
         try:
             with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
-                user_data = pickle.load(data_load)
+                data = pickle.load(data_load)
             if previous is True:
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
-                      " tweets prior to tweet ID " + str(user_data[len(user_data) - 1][1]) + ": " +
-                      user_data[len(user_data) - 1][0])
-                Sent.user_data(api, user, number_tweets, user_data, trim, previous=True)
+                      " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
+                      data[len(data) - 1][0])
+                Sent.user_data(api, user, number_tweets, data, trim, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
-                      " tweets since tweet ID " + str(user_data[0][1]) + ": " + user_data[0][0])
+                      " tweets since tweet ID " + str(data[0][1]) + ": " + data[0][0])
                 Sent.user_data(api, user, number_tweets, data, trim, previous=False)
         except IOError:
             if previous is True:
                 print("Download some data first with tweets_replies_last_loop function")
             else:
                 print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
-                user_data = []
-                Sent.user_data(api, user, number_tweets, user_data, trim, previous=False)
+                data = []
+                Sent.user_data(api, user, number_tweets, data, trim, previous=False)
     if build is True:
         return build_user(user_list)
     else:
@@ -49,24 +49,24 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
         for user in user_list:
             try:
                 with open("Pickles/replies_" + user + ".p", "rb") as data_load:
-                    replies_data = pickle.load(data_load)
+                    data = pickle.load(data_load)
                 if previous is True:
                     print("Successfully loaded replies for " + user + ", downloading " + str(number_elements) +
-                          " replies prior to tweet ID " + str(replies_data[len(replies_data) - 1][2]) + ": " +
-                          replies_data[len(replies_data) - 1][1])
-                    Sent.tweets_replies(api, user, number_elements, replies_data, type_data="replies", previous=True)
+                          " replies prior to tweet ID " + str(data[len(data) - 1][2]) + ": " +
+                          data[len(data) - 1][1])
+                    Sent.tweets_replies(api, user, number_elements, data, type_data="replies", previous=True)
                 else:
                     print("Previous replies found for " + user + ", downloading last " + str(number_elements) +
-                          " replies since tweet ID " + str(replies_data[0][2]) + ": " + replies_data[0][1])
-                    Sent.tweets_replies(api, user, number_elements, replies_data, type_data="replies", previous=False)
+                          " replies since tweet ID " + str(data[0][2]) + ": " + data[0][1])
+                    Sent.tweets_replies(api, user, number_elements, data, type_data="replies", previous=False)
             except IOError:
                 if previous is True:
                     print("Download some data first with replies_last_loop function")
                 else:
                     print("No previous replies found for " + user + ", downloading last " + str(number_elements) +
                           " replies")
-                    replies_data = []
-                    Sent.tweets_replies(api, user, number_elements, replies_data, type_data="replies", previous=False)
+                    data = []
+                    Sent.tweets_replies(api, user, number_elements, data, type_data="replies", previous=False)
         if build is True:
             return build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
         else:
@@ -75,17 +75,17 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
         for user in user_list:
             try:
                 with open("Pickles/tweets_" + user + ".p", "rb") as data_load:
-                    tweets_data = pickle.load(data_load)
+                    data = pickle.load(data_load)
                 if previous is True:
                     print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
-                          " tweets prior to tweet ID " + str(tweets_data[len(tweets_data) - 1][1]) + ": " +
-                          tweets_data[len(tweets_data) - 1][0])
-                    Sent.tweets_replies(api, user, number_elements, tweets_data, trim, type_data="tweets",
+                          " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
+                          data[len(data) - 1][0])
+                    Sent.tweets_replies(api, user, number_elements, data, trim, type_data="tweets",
                                         previous=True)
                 else:
                     print("Previous tweets found for " + user + ", downloading last " + str(number_elements) +
-                          " tweets since tweet ID " + str(tweets_data[0][1]) + ": " + tweets_data[0][0])
-                    Sent.tweets_replies(api, user, number_elements, tweets_data, trim, type_data="tweets",
+                          " tweets since tweet ID " + str(data[0][1]) + ": " + data[0][0])
+                    Sent.tweets_replies(api, user, number_elements, data, trim, type_data="tweets",
                                         previous=False)
             except IOError:
                 if previous is True:
@@ -93,8 +93,8 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
                 else:
                     print("No previous data found for " + user + ", downloading last " + str(number_elements) +
                           " tweets")
-                    tweets_data = []
-                    Sent.tweets_replies(api, user, number_elements, tweets_data, trim, type_data="tweets",
+                    data = []
+                    Sent.tweets_replies(api, user, number_elements, data, trim, type_data="tweets",
                                         previous=False)
         if build is True:
             return build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
