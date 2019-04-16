@@ -29,7 +29,7 @@ def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
                       " tweets since tweet ID " + str(user_data[0][1]) + ": " + user_data[0][0])
-            Sent.user_data(api, user, number_tweets, user_data, trim, previous=False)
+                Sent.user_data(api, user, number_tweets, data, trim, previous=False)
         except IOError:
             if previous is True:
                 print("Download some data first with tweets_replies_last_loop function")
