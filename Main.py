@@ -114,7 +114,7 @@ def build_user(user_list):
         for tweets in full_tweets_replies_data[user]:
             long_tweets_replies.append([user, tweets[0], tweets[7], tweets[3], tweets[4],
                                         tweets[5], tweets[2], tweets[1]])
-        user_df = pd.DataFrame(long_tweets_replies)
+    user_df = pd.DataFrame(long_tweets_replies)
     return full_tweets_replies_data, user_df
 
 
