@@ -12,3 +12,5 @@ Pickles/
 __pycache__/
 
 *.p
+
+jsons/

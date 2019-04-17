@@ -1,7 +1,6 @@
 import Sent
 import tweepy
 import json
-import pickle
 import sys
 import datetime
 import pandas as pd
@@ -20,8 +19,8 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
     for user in user_list:
         try:
-            with open("Pickles/tweets_replies_" + user + ".p", "rb") as data_load:
-                data = pickle.load(data_load)
+            with open("jsons/tweets_replies_" + user + ".json", "r") as data_load:
+                data = json.load(data_load)
             if previous is True:
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
                       " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
@@ -49,8 +48,8 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
     if type_data is "replies":
         for user in user_list:
             try:
-                with open("Pickles/replies_" + user + ".p", "rb") as data_load:
-                    data = pickle.load(data_load)
+                with open("jsons/replies_" + user + ".json", "r") as data_load:
+                    data = json.load(data_load)
                 if previous is True:
                     print("Successfully loaded replies for " + user + ", downloading " + str(number_elements) +
                           " replies prior to tweet ID " + str(data[len(data) - 1][2]) + ": " +
@@ -75,8 +74,8 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
     elif type_data is "tweets":
         for user in user_list:
             try:
-                with open("Pickles/tweets_" + user + ".p", "rb") as data_load:
-                    data = pickle.load(data_load)
+                with open("json/tweets_" + user + ".json", "r") as data_load:
+                    data = json.load(data_load)
                 if previous is True:
                     print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
                           " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
