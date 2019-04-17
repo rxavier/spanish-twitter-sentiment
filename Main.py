@@ -21,6 +21,8 @@ def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
         try:
             with open("jsons/tweets_replies_" + user + ".json", "r") as data_load:
                 data = json.load(data_load)
+            for tweet in data:
+                tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
             if previous is True:
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
                       " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
@@ -50,6 +52,8 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
             try:
                 with open("jsons/replies_" + user + ".json", "r") as data_load:
                     data = json.load(data_load)
+                for reply in data:
+                    reply[3] = datetime.datetime.strptime(reply[3], "%Y-%m-%d %H:%M:%S")
                 if previous is True:
                     print("Successfully loaded replies for " + user + ", downloading " + str(number_elements) +
                           " replies prior to tweet ID " + str(data[len(data) - 1][2]) + ": " +
@@ -76,6 +80,8 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
             try:
                 with open("jsons/tweets_" + user + ".json", "r") as data_load:
                     data = json.load(data_load)
+                for tweet in data:
+                    tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
                 if previous is True:
                     print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
                           " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
