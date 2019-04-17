@@ -10,7 +10,7 @@ clf = SentimentClassifier()
 
 def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
     if previous is True:
-        first_id = tweets_replies_data[len(tweets_replies_data) - 1][1]
+        first_id = tweets_replies_data[len(tweets_replies_data) - 1][9]
         tweet_reply_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
                                            tweet_mode="extended").items(num_tweets)
     else:
@@ -19,18 +19,23 @@ def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
                                                tweet_mode="extended").items(num_tweets)
         elif trim > 0:
             tweets_replies_data = tweets_replies_data[trim:]
-            last_id = tweets_replies_data[0][1]
+            last_id = tweets_replies_data[0][9]
             print("Trimming " + str(trim) + " tweets. Last tweet considered is " + tweets_replies_data[0][0])
             tweet_reply_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
                                                tweet_mode="extended").items(num_tweets)
         else:
-            last_id = tweets_replies_data[0][1]
+            last_id = tweets_replies_data[0][9]
             tweet_reply_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
                                                tweet_mode="extended").items(num_tweets)
     for user_tweet in tweet_reply_cursor:
-        if not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and \
-                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9) and \
-                not user_tweet.full_text.startswith("@"):
+        if (not user_tweet.retweeted and ("RT @" not in user_tweet.full_text) and
+                ((datetime.datetime.utcnow() - user_tweet.created_at).days < 9) and
+                not user_tweet.full_text.startswith("@")):
+            tweet_to_evaluate = re.sub("@[A-z0-9_]+|http\\S+", "", user_tweet.full_text).strip()
+            if len(tweet_to_evaluate) < 4:
+                sentiment_tweet = None
+            else:
+                sentiment_tweet = clf.predict(tweet_to_evaluate)
             replies_list = []
             for reply_tweet in tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended",
                                              since_id=user_tweet.id).items(1000):
@@ -46,16 +51,22 @@ def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
                                             reply_tweet.favorite_count, reply_tweet.retweet_count, sentiment])
             sentiment_count = [replies_list[x][4] for x in range(0, len(replies_list))]
             if (len(replies_list) != 0) and (len(sentiment_count) > sentiment_count.count(None)):
-                tweets_replies_data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
-                                            user_tweet.favorite_count, user_tweet.retweet_count,
-                                            len(replies_list), replies_list,
-                                            mean([replies_list[replies_list.index(x)][4] for x in replies_list
-                                                  if replies_list[replies_list.index(x)][4] is not None])])
+                mean_sentiment = mean([replies_list[replies_list.index(x)][4] for x in replies_list
+                                       if replies_list[replies_list.index(x)][4] is not None])
+                if sentiment_tweet is not None:
+                    tweets_replies_data.append([user_tweet.full_text, user_tweet.created_at,
+                                                user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
+                                                sentiment_tweet, mean_sentiment, sentiment_tweet-mean_sentiment,
+                                                replies_list, user_tweet.id])
+                else:
+                    tweets_replies_data.append([user_tweet.full_text, user_tweet.created_at, user_tweet.favorite_count,
+                                                user_tweet.retweet_count, len(replies_list), sentiment_tweet,
+                                                mean_sentiment, None, replies_list, user_tweet.id])
             else:
-                tweets_replies_data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
-                                            user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
-                                            replies_list, None])
-    tweets_replies_data = sorted(tweets_replies_data, key=lambda x: x[2], reverse=True)
+                tweets_replies_data.append([user_tweet.full_text, user_tweet.created_at, user_tweet.favorite_count,
+                                            user_tweet.retweet_count, len(replies_list), sentiment_tweet,
+                                            None, None, replies_list, user_tweet.id])
+    tweets_replies_data = sorted(tweets_replies_data, key=lambda x: x[1], reverse=True)
     with open("jsons/tweets_replies_" + user + ".json", "w") as data_dump:
         json.dump(tweets_replies_data, data_dump, default=datetime_to_str)
     return tweets_replies_data

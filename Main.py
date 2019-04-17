@@ -22,15 +22,15 @@ def user_loop(user_list, number_tweets=10, trim=0, previous=False, build=False):
             with open("jsons/tweets_replies_" + user + ".json", "r") as data_load:
                 data = json.load(data_load)
             for tweet in data:
-                tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
+                tweet[1] = datetime.datetime.strptime(tweet[1], "%Y-%m-%d %H:%M:%S")
             if previous is True:
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
-                      " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
+                      " tweets prior to tweet ID " + str(data[len(data) - 1][9]) + ": " +
                       data[len(data) - 1][0])
                 Sent.user_data(api, user, number_tweets, data, trim, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
-                      " tweets since tweet ID " + str(data[0][1]) + ": " + data[0][0])
+                      " tweets since tweet ID " + str(data[0][9]) + ": " + data[0][0])
                 Sent.user_data(api, user, number_tweets, data, trim, previous=False)
         except IOError:
             if previous is True:
@@ -120,9 +120,9 @@ def build_user(user_list):
             data = json.load(dl)
 
         for tweet in data:
-            tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
-            long_tweets_replies.append([user, tweet[0], tweet[7], tweet[3], tweet[4],
-                                        tweet[5], tweet[2], tweet[1]])
+            tweet[1] = datetime.datetime.strptime(tweet[1], "%Y-%m-%d %H:%M:%S")
+            long_tweets_replies.append([user, tweet[0], tweet[1], tweet[2], tweet[3],
+                                        tweet[4], tweet[5], tweet[6], tweet[7], tweet[8]])
 
         full_tweets_replies_data.update({user: data})
     user_df = pd.DataFrame(long_tweets_replies)
