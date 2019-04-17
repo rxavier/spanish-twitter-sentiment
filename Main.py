@@ -16,7 +16,7 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
+def user_loop(user_list, number_tweets=10, trim=0, previous=False, build=False):
     for user in user_list:
         try:
             with open("jsons/tweets_replies_" + user + ".json", "r") as data_load:
@@ -45,7 +45,7 @@ def user_loop(user_list, number_tweets, trim=0, previous=False, build=False):
         return None, None
 
 
-def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
+def tweets_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
                         type_data="replies", previous=False, build=False):
     if type_data is "replies":
         for user in user_list:
