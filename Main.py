@@ -74,7 +74,7 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
     elif type_data is "tweets":
         for user in user_list:
             try:
-                with open("json/tweets_" + user + ".json", "r") as data_load:
+                with open("jsons/tweets_" + user + ".json", "r") as data_load:
                     data = json.load(data_load)
                 if previous is True:
                     print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
