@@ -3,6 +3,7 @@ import tweepy
 import json
 import pickle
 import sys
+import datetime
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -108,42 +109,62 @@ def tweets_replies_loop(user_list, number_elements, mean_obs=100, trim=0,
 def build_user(user_list):
     full_tweets_replies_data = {}
     long_tweets_replies = []
+
     for user in user_list:
-        with open("Pickles/tweets_replies_" + user + ".p", "rb") as dl:
-            full_tweets_replies_data.update({user: pickle.load(dl)})
-        for tweets in full_tweets_replies_data[user]:
-            long_tweets_replies.append([user, tweets[0], tweets[7], tweets[3], tweets[4],
-                                        tweets[5], tweets[2], tweets[1]])
+        with open("jsons/tweets_replies_" + user + ".json", "r") as dl:
+            data = json.load(dl)
+
+        for tweet in data:
+            tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
+            long_tweets_replies.append([user, tweet[0], tweet[7], tweet[3], tweet[4],
+                                        tweet[5], tweet[2], tweet[1]])
+
+        full_tweets_replies_data.update({user: data})
     user_df = pd.DataFrame(long_tweets_replies)
     return full_tweets_replies_data, user_df
 
 
-def build_tweets_replies(user_list, mean_obs, type_data="replies"):
+def build_tweets_replies(user_list, mean_obs=100, type_data="replies"):
     named_data = {}
     long_data = []
+
     if type_data is "tweets":
         for user in user_list:
-            with open("Pickles/tweets_" + user + ".p", "rb") as dl:
-                named_data.update({user: pickle.load(dl)})
-            for tweets in named_data[user]:
-                long_data.append([user, tweets[0], tweets[1], tweets[2], tweets[3], tweets[4], tweets[5]])
+            with open("jsons/tweets_" + user + ".json", "r") as dl:
+                data = json.load(dl)
+
+            for tweet in data:
+                tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
+                long_data.append([user, tweet[0], tweet[1], tweet[2], tweet[3], tweet[4], tweet[5]])
+
+            named_data.update({user: data})
+
         df_tweets = pd.DataFrame(long_data)
         df_tweets.columns = ["User", "Tweet", "ID", "Date", "Likes", "Retweets", "Sentiment"]
         df_tweets["Date"] = pd.to_datetime(df_tweets["Date"])
+
         mean_tweets_user = {}
         for user in named_data.keys():
             tweets_user = named_data[user]
             mean_tweets_user.update({user: mean([x[5] for x in tweets_user[0:mean_obs] if x[5] is not None])})
         return named_data, mean_tweets_user, df_tweets
+
     elif type_data is "replies":
         for user in user_list:
-            with open("Pickles/replies_" + user + ".p", "rb") as dl:
-                named_data.update({user: pickle.load(dl)})
+            with open("jsons/replies_" + user + ".json", "r") as dl:
+                data = json.load(dl)
+
+            for reply in data:
+                reply[3] = datetime.datetime.strptime(reply[3], "%Y-%m-%d %H:%M:%S")
+
+            named_data.update({user: data})
+
         mean_replies_user = {}
         for user in named_data.keys():
             replies_list = named_data[user]
             mean_replies_user.update({user: mean([x[6] for x in replies_list[0:mean_obs] if x[6] is not None])})
         return named_data, mean_replies_user, None
+
     else:
         print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
         sys.exit()
