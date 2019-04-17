@@ -3,14 +3,10 @@
 
 Keys\.json
 
-*.pickle
-
-goodpick/
-
-Pickles/
-
 __pycache__/
 
-*.p
-
 jsons/
+
+*.json
+
+*.p
