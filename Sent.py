@@ -8,7 +8,7 @@ from classifier import SentimentClassifier
 clf = SentimentClassifier()
 
 
-def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
+def tweets_with_replies(api, user, num_tweets, tweets_replies_data, trim, previous=False):
     if previous is True:
         first_id = tweets_replies_data[len(tweets_replies_data) - 1][9]
         tweet_reply_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
@@ -72,7 +72,7 @@ def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
     return tweets_replies_data
 
 
-def tweets_replies(api, user, number_elements, data, trim=0, type_data="replies", previous=False):
+def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="replies", previous=False):
     if type_data is "replies":
         if previous is True:
             first_id = data[len(data) - 1][2]
