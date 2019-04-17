@@ -1,7 +1,7 @@
 import tweepy
-import pickle
 import datetime
 import re
+import json
 from statistics import mean
 from classifier import SentimentClassifier
 
@@ -55,8 +55,9 @@ def user_data(api, user, num_tweets, tweets_replies_data, trim, previous=False):
                 tweets_replies_data.append([user_tweet.full_text, user_tweet.id, user_tweet.created_at,
                                             user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
                                             replies_list, None])
-    with open("Pickles/tweets_replies_" + user + ".p", "wb") as data_dump:
-        pickle.dump(sorted(tweets_replies_data, key=lambda x: x[2], reverse=True), data_dump)
+    tweets_replies_data = sorted(tweets_replies_data, key=lambda x: x[2], reverse=True)
+    with open("jsons/tweets_replies_" + user + ".json", "w") as data_dump:
+        json.dump(tweets_replies_data, data_dump, default=datetime_to_str)
     return tweets_replies_data
 
 
@@ -82,8 +83,9 @@ def tweets_replies(api, user, number_elements, data, trim=0, type_data="replies"
                     sentiment = clf.predict(reply_to_evaluate)
                 data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
                              reply.favorite_count, reply.retweet_count, sentiment])
-        with open("Pickles/replies_" + user + ".p", "wb") as data_dump:
-            pickle.dump(sorted(data, key=lambda x: x[2], reverse=True), data_dump)
+        data = sorted(data, key=lambda x: x[2], reverse=True)
+        with open("jsons/replies_" + user + ".json", "w") as data_dump:
+            json.dump(data, data_dump, default=datetime_to_str)
         return data
     elif type_data is "tweets":
         if previous is True:
@@ -113,6 +115,12 @@ def tweets_replies(api, user, number_elements, data, trim=0, type_data="replies"
                     sentiment = clf.predict(tweet_to_evaluate)
                 data.append([tweet.full_text, tweet.id, tweet.created_at,
                             tweet.favorite_count, tweet.retweet_count, sentiment])
-        with open("Pickles/tweets_" + user + ".p", "wb") as data_dump:
-            pickle.dump(sorted(data, key=lambda x: x[2], reverse=True), data_dump)
+        data = sorted(data, key=lambda x: x[2], reverse=True)
+        with open("jsons/tweets_" + user + ".json", "w") as data_dump:
+            json.dump(data, data_dump, default=datetime_to_str)
         return data
+
+
+def datetime_to_str(data):
+    if isinstance(data, datetime.datetime):
+        return data.__str__()
