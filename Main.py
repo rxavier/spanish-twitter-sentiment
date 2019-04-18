@@ -16,53 +16,53 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def user_loop(user_list, number_tweets=10, trim=0, previous=False, build=False):
+def tweets_with_replies_loop(user_list, number_tweets=10, trim=0, previous=False, build=False):
     for user in user_list:
         try:
             with open("jsons/tweets_replies_" + user + ".json", "r") as data_load:
                 data = json.load(data_load)
             for tweet in data:
-                tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
+                tweet[1] = datetime.datetime.strptime(tweet[1], "%Y-%m-%d %H:%M:%S")
             if previous is True:
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_tweets) +
-                      " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
+                      " tweets prior to tweet ID " + str(data[len(data) - 1][9]) + ": " +
                       data[len(data) - 1][0])
-                Sent.user_data(api, user, number_tweets, data, trim, previous=True)
+                Sent.tweets_with_replies(api, user, number_tweets, data, trim, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_tweets) +
-                      " tweets since tweet ID " + str(data[0][1]) + ": " + data[0][0])
-                Sent.user_data(api, user, number_tweets, data, trim, previous=False)
+                      " tweets since tweet ID " + str(data[0][9]) + ": " + data[0][0])
+                Sent.tweets_with_replies(api, user, number_tweets, data, trim, previous=False)
         except IOError:
             if previous is True:
                 print("Download some data first with tweets_replies_last_loop function")
             else:
                 print("No previous data found for " + user + ", downloading last " + str(number_tweets) + " tweets")
                 data = []
-                Sent.user_data(api, user, number_tweets, data, trim, previous=False)
+                Sent.tweets_with_replies(api, user, number_tweets, data, trim, previous=False)
     if build is True:
-        return build_user(user_list)
+        return build_tweets_with_replies(user_list)
     else:
         return None, None
 
 
-def tweets_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
-                        type_data="replies", previous=False, build=False):
+def tweets_or_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
+                           type_data="replies", previous=False, build=False):
     if type_data is "replies":
         for user in user_list:
             try:
                 with open("jsons/replies_" + user + ".json", "r") as data_load:
                     data = json.load(data_load)
                 for reply in data:
-                    reply[3] = datetime.datetime.strptime(reply[3], "%Y-%m-%d %H:%M:%S")
+                    reply[2] = datetime.datetime.strptime(reply[2], "%Y-%m-%d %H:%M:%S")
                 if previous is True:
                     print("Successfully loaded replies for " + user + ", downloading " + str(number_elements) +
-                          " replies prior to tweet ID " + str(data[len(data) - 1][2]) + ": " +
+                          " replies prior to tweet ID " + str(data[len(data) - 1][6]) + ": " +
                           data[len(data) - 1][1])
-                    Sent.tweets_replies(api, user, number_elements, data, type_data="replies", previous=True)
+                    Sent.tweets_or_replies(api, user, number_elements, data, type_data="replies", previous=True)
                 else:
                     print("Previous replies found for " + user + ", downloading last " + str(number_elements) +
-                          " replies since tweet ID " + str(data[0][2]) + ": " + data[0][1])
-                    Sent.tweets_replies(api, user, number_elements, data, type_data="replies", previous=False)
+                          " replies since tweet ID " + str(data[0][6]) + ": " + data[0][1])
+                    Sent.tweets_or_replies(api, user, number_elements, data, type_data="replies", previous=False)
             except IOError:
                 if previous is True:
                     print("Download some data first with replies_last_loop function")
@@ -70,9 +70,9 @@ def tweets_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
                     print("No previous replies found for " + user + ", downloading last " + str(number_elements) +
                           " replies")
                     data = []
-                    Sent.tweets_replies(api, user, number_elements, data, type_data="replies", previous=False)
+                    Sent.tweets_or_replies(api, user, number_elements, data, type_data="replies", previous=False)
         if build is True:
-            return build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
+            return build_tweets_or_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
         else:
             return None, None, None
     elif type_data is "tweets":
@@ -84,15 +84,15 @@ def tweets_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
                     tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
                 if previous is True:
                     print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
-                          " tweets prior to tweet ID " + str(data[len(data) - 1][1]) + ": " +
+                          " tweets prior to tweet ID " + str(data[len(data) - 1][6]) + ": " +
                           data[len(data) - 1][0])
-                    Sent.tweets_replies(api, user, number_elements, data, trim, type_data="tweets",
-                                        previous=True)
+                    Sent.tweets_or_replies(api, user, number_elements, data, trim, type_data="tweets",
+                                           previous=True)
                 else:
                     print("Previous tweets found for " + user + ", downloading last " + str(number_elements) +
-                          " tweets since tweet ID " + str(data[0][1]) + ": " + data[0][0])
-                    Sent.tweets_replies(api, user, number_elements, data, trim, type_data="tweets",
-                                        previous=False)
+                          " tweets since tweet ID " + str(data[0][6]) + ": " + data[0][0])
+                    Sent.tweets_or_replies(api, user, number_elements, data, trim, type_data="tweets",
+                                           previous=False)
             except IOError:
                 if previous is True:
                     print("Download some data first with tweets_replies_last_loop function")
@@ -100,10 +100,10 @@ def tweets_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
                     print("No previous data found for " + user + ", downloading last " + str(number_elements) +
                           " tweets")
                     data = []
-                    Sent.tweets_replies(api, user, number_elements, data, trim, type_data="tweets",
-                                        previous=False)
+                    Sent.tweets_or_replies(api, user, number_elements, data, trim, type_data="tweets",
+                                           previous=False)
         if build is True:
-            return build_tweets_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
+            return build_tweets_or_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
         else:
             return None, None, None
     else:
@@ -111,7 +111,7 @@ def tweets_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
         return None, None, None
 
 
-def build_user(user_list):
+def build_tweets_with_replies(user_list):
     full_tweets_replies_data = {}
     long_tweets_replies = []
 
@@ -120,16 +120,16 @@ def build_user(user_list):
             data = json.load(dl)
 
         for tweet in data:
-            tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
-            long_tweets_replies.append([user, tweet[0], tweet[7], tweet[3], tweet[4],
-                                        tweet[5], tweet[2], tweet[1]])
+            tweet[1] = datetime.datetime.strptime(tweet[1], "%Y-%m-%d %H:%M:%S")
+            long_tweets_replies.append([user, tweet[0], tweet[1], tweet[2], tweet[3],
+                                        tweet[4], tweet[5], tweet[6], tweet[7], tweet[8]])
 
         full_tweets_replies_data.update({user: data})
     user_df = pd.DataFrame(long_tweets_replies)
     return full_tweets_replies_data, user_df
 
 
-def build_tweets_replies(user_list, mean_obs=100, type_data="replies"):
+def build_tweets_or_replies(user_list, mean_obs=100, type_data="replies"):
     named_data = {}
     long_data = []
 
@@ -140,12 +140,12 @@ def build_tweets_replies(user_list, mean_obs=100, type_data="replies"):
 
             for tweet in data:
                 tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
-                long_data.append([user, tweet[0], tweet[1], tweet[2], tweet[3], tweet[4], tweet[5]])
+                long_data.append([tweet[0], tweet[1], tweet[2], tweet[3], tweet[4], tweet[5], tweet[6]])
 
             named_data.update({user: data})
 
         df_tweets = pd.DataFrame(long_data)
-        df_tweets.columns = ["User", "Tweet", "ID", "Date", "Likes", "Retweets", "Sentiment"]
+        df_tweets.columns = ["User", "Tweet", "Date", "Likes", "Retweets", "Sentiment", "ID"]
         df_tweets["Date"] = pd.to_datetime(df_tweets["Date"])
 
         mean_tweets_user = {}
@@ -160,14 +160,14 @@ def build_tweets_replies(user_list, mean_obs=100, type_data="replies"):
                 data = json.load(dl)
 
             for reply in data:
-                reply[3] = datetime.datetime.strptime(reply[3], "%Y-%m-%d %H:%M:%S")
+                reply[3] = datetime.datetime.strptime(reply[2], "%Y-%m-%d %H:%M:%S")
 
             named_data.update({user: data})
 
         mean_replies_user = {}
         for user in named_data.keys():
             replies_list = named_data[user]
-            mean_replies_user.update({user: mean([x[6] for x in replies_list[0:mean_obs] if x[6] is not None])})
+            mean_replies_user.update({user: mean([x[5] for x in replies_list[0:mean_obs] if x[5] is not None])})
         return named_data, mean_replies_user, None
 
     else:
