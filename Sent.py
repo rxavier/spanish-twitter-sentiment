@@ -75,14 +75,14 @@ def tweets_with_replies(api, user, num_tweets, tweets_replies_data, trim, previo
 def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="replies", previous=False):
     if type_data is "replies":
         if previous is True:
-            first_id = data[len(data) - 1][2]
+            first_id = data[len(data) - 1][6]
             reply_cursor = tweepy.Cursor(api.search, q="to:" + user, max_id=first_id, tweet_mode="extended").items(
                 number_elements)
         else:
             if len(data) == 0:
                 reply_cursor = tweepy.Cursor(api.search, q="to:" + user, tweet_mode="extended").items(number_elements)
             else:
-                last_id = data[0][2]
+                last_id = data[0][6]
                 reply_cursor = tweepy.Cursor(api.search, q="to:" + user, since_id=last_id,
                                              tweet_mode="extended").items(number_elements)
         for reply in reply_cursor:
@@ -92,15 +92,17 @@ def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="repli
                     sentiment = None
                 else:
                     sentiment = clf.predict(reply_to_evaluate)
-                data.append([reply.author.screen_name, reply.full_text, reply.id, reply.created_at,
-                             reply.favorite_count, reply.retweet_count, sentiment])
+                data.append([reply.author.screen_name, reply.full_text, reply.created_at,
+                             reply.favorite_count, reply.retweet_count, sentiment, reply.id])
         data = sorted(data, key=lambda x: x[2], reverse=True)
+
         with open("jsons/replies_" + user + ".json", "w") as data_dump:
             json.dump(data, data_dump, default=datetime_to_str)
         return data
+
     elif type_data is "tweets":
         if previous is True:
-            first_id = data[len(data) - 1][1]
+            first_id = data[len(data) - 1][6]
             tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, max_id=first_id - 1,
                                          tweet_mode="extended").items(number_elements)
         else:
@@ -109,8 +111,8 @@ def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="repli
                     number_elements)
             elif trim > 0:
                 data = data[trim:]
-                last_id = data[0][1]
-                print("Trimming " + str(trim) + " tweets. Last tweet considered is " + data[0][0])
+                last_id = data[0][6]
+                print("Trimming " + str(trim) + " tweets. Last tweet considered is " + data[0][1])
                 tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
                                              tweet_mode="extended").items(number_elements)
             else:
@@ -124,9 +126,10 @@ def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="repli
                     sentiment = None
                 else:
                     sentiment = clf.predict(tweet_to_evaluate)
-                data.append([tweet.full_text, tweet.id, tweet.created_at,
-                            tweet.favorite_count, tweet.retweet_count, sentiment])
+                data.append([tweet.author.screen_name, tweet.full_text, tweet.created_at,
+                            tweet.favorite_count, tweet.retweet_count, sentiment, tweet.id])
         data = sorted(data, key=lambda x: x[2], reverse=True)
+
         with open("jsons/tweets_" + user + ".json", "w") as data_dump:
             json.dump(data, data_dump, default=datetime_to_str)
         return data
