@@ -116,7 +116,7 @@ def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="repli
                 tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
                                              tweet_mode="extended").items(number_elements)
             else:
-                last_id = data[0][1]
+                last_id = data[0][6]
                 tweet_cursor = tweepy.Cursor(api.user_timeline, screen_name=user, since_id=last_id,
                                              tweet_mode="extended").items(number_elements)
         for tweet in tweet_cursor:

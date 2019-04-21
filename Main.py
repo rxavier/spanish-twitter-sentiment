@@ -85,12 +85,12 @@ def tweets_or_replies_loop(user_list, number_elements=100, mean_obs=100, trim=0,
                 if previous is True:
                     print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
                           " tweets prior to tweet ID " + str(data[len(data) - 1][6]) + ": " +
-                          data[len(data) - 1][0])
+                          data[len(data) - 1][1])
                     Sent.tweets_or_replies(api, user, number_elements, data, trim, type_data="tweets",
                                            previous=True)
                 else:
                     print("Previous tweets found for " + user + ", downloading last " + str(number_elements) +
-                          " tweets since tweet ID " + str(data[0][6]) + ": " + data[0][0])
+                          " tweets since tweet ID " + str(data[0][6]) + ": " + data[0][1])
                     Sent.tweets_or_replies(api, user, number_elements, data, trim, type_data="tweets",
                                            previous=False)
             except IOError:
@@ -160,7 +160,7 @@ def build_tweets_or_replies(user_list, mean_obs=100, type_data="replies"):
                 data = json.load(dl)
 
             for reply in data:
-                reply[3] = datetime.datetime.strptime(reply[2], "%Y-%m-%d %H:%M:%S")
+                reply[2] = datetime.datetime.strptime(reply[2], "%Y-%m-%d %H:%M:%S")
 
             named_data.update({user: data})
 
