@@ -56,7 +56,7 @@ def tweets_with_replies(api, user, num_tweets, tweets_replies_data, trim, previo
                 if sentiment_tweet is not None:
                     tweets_replies_data.append([user_tweet.full_text, user_tweet.created_at,
                                                 user_tweet.favorite_count, user_tweet.retweet_count, len(replies_list),
-                                                sentiment_tweet, mean_sentiment, sentiment_tweet-mean_sentiment,
+                                                sentiment_tweet, mean_sentiment, mean_sentiment-sentiment_tweet,
                                                 replies_list, user_tweet.id])
                 else:
                     tweets_replies_data.append([user_tweet.full_text, user_tweet.created_at, user_tweet.favorite_count,
