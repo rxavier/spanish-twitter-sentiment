@@ -1,4 +1,4 @@
-import Sent
+import base_functions
 import tweepy
 import json
 import sys
@@ -31,16 +31,16 @@ def tweets_with_replies_users(user_list, number_elements=10, trim=0, previous=Fa
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
                       " tweets prior to tweet ID " + str(data[len(data) - 1][9]) + ": " +
                       data[len(data) - 1][0])
-                Sent.tweets_with_replies(api, user, number_elements, data, previous=True)
+                base_functions.tweets_with_replies(api, user, number_elements, data, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_elements) +
                       " tweets since tweet ID " + str(data[0][9]) + ": " + data[0][0])
-                Sent.tweets_with_replies(api, user, number_elements, data, trim, previous=False)
+                base_functions.tweets_with_replies(api, user, number_elements, data, trim, previous=False)
 
         except IOError:
             print("No previous data found for " + user + ", downloading last " + str(number_elements) + " tweets")
             data = []
-            Sent.tweets_with_replies(api, user, number_elements, data, trim, previous=False)
+            base_functions.tweets_with_replies(api, user, number_elements, data, trim, previous=False)
 
     if build is True:
         return build_tweets_with_replies(user_list)
@@ -71,11 +71,11 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
                 print("Successfully loaded " + type_data + " for " + user + ", downloading " + str(number_elements) +
                       " elements prior to tweet ID " + str(data[len(data) - 1][6]) + ": " +
                       data[len(data) - 1][1])
-                Sent.tweets_or_replies(api, user, number_elements, data, type_data=type_data, previous=True)
+                base_functions.tweets_or_replies(api, user, number_elements, data, type_data=type_data, previous=True)
             else:
                 print("Previous " + type_data + " found for " + user + ", downloading last " + str(number_elements) +
                       " elements since tweet ID " + str(data[0][6]) + ": " + data[0][1])
-                Sent.tweets_or_replies(api, user, number_elements, data, trim, type_data=type_data, previous=False)
+                base_functions.tweets_or_replies(api, user, number_elements, data, trim, type_data=type_data, previous=False)
 
         except IOError:
             print("No previous " + type_data + " found for " + user + ", downloading last " + str(number_elements) +
@@ -83,7 +83,7 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
             data = []
 
             if type_data is "replies" or type_data is "tweets":
-                Sent.tweets_or_replies(api, user, number_elements, data, type_data=type_data, previous=False)
+                base_functions.tweets_or_replies(api, user, number_elements, data, type_data=type_data, previous=False)
             else:
                 print("Only \"tweets\" and \"replies\" are accepted type_data")
                 sys.exit()
