@@ -54,7 +54,7 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
     for user in user_list:
 
         try:
-            
+
             if type_data is "replies" or type_data is "tweets":
                 with open("jsons/" + type_data + "_" + user + ".json", "r") as data_load:
                     data = json.load(data_load)
@@ -110,46 +110,32 @@ def build_tweets_with_replies(user_list):
     return full_tweets_replies_data, user_df
 
 
-def build_tweets_or_replies(user_list, mean_obs=100, type_data="replies"):
+def build_tweets_or_replies(user_list, mean_obs=100, type_data="tweets"):
+
     named_data = {}
     long_data = []
 
-    if type_data is "tweets":
+    if type_data is "tweets" or type_data is "replies":
+
         for user in user_list:
-            with open("jsons/tweets_" + user + ".json", "r") as dl:
+            with open("jsons/" + type_data + "_" + user + ".json", "r") as dl:
                 data = json.load(dl)
 
-            for tweet in data:
-                tweet[2] = datetime.datetime.strptime(tweet[2], "%Y-%m-%d %H:%M:%S")
-                long_data.append([tweet[0], tweet[1], tweet[2], tweet[3], tweet[4], tweet[5], tweet[6]])
+            for element in data:
+                element[2] = datetime.datetime.strptime(element[2], "%Y-%m-%d %H:%M:%S")
+                long_data.append([user, element[1], element[2], element[3], element[4], element[5]])
 
             named_data.update({user: data})
 
-        df_tweets = pd.DataFrame(long_data)
-        df_tweets.columns = ["User", "Tweet", "Date", "Likes", "Retweets", "Sentiment", "ID"]
-        df_tweets["Date"] = pd.to_datetime(df_tweets["Date"])
+        df_data = pd.DataFrame(long_data)
+        df_data.columns = ["User", "Tweet", "Date", "Likes", "Retweets", "Sentiment"]
 
-        mean_tweets_user = {}
+        mean_elements = {}
         for user in named_data.keys():
-            tweets_user = named_data[user]
-            mean_tweets_user.update({user: mean([x[5] for x in tweets_user[0:mean_obs] if x[5] is not None])})
-        return named_data, mean_tweets_user, df_tweets
+            elements = named_data[user]
+            mean_elements.update({user: mean([x[5] for x in elements[0:mean_obs] if x[5] is not None])})
 
-    elif type_data is "replies":
-        for user in user_list:
-            with open("jsons/replies_" + user + ".json", "r") as dl:
-                data = json.load(dl)
-
-            for reply in data:
-                reply[2] = datetime.datetime.strptime(reply[2], "%Y-%m-%d %H:%M:%S")
-
-            named_data.update({user: data})
-
-        mean_replies_user = {}
-        for user in named_data.keys():
-            replies_list = named_data[user]
-            mean_replies_user.update({user: mean([x[5] for x in replies_list[0:mean_obs] if x[5] is not None])})
-        return named_data, mean_replies_user, None
+        return named_data, mean_elements, df_data
 
     else:
         print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
