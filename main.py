@@ -54,11 +54,9 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
     for user in user_list:
 
         try:
-            if type_data is "replies":
-                with open("jsons/replies_" + user + ".json", "r") as data_load:
-                    data = json.load(data_load)
-            elif type_data is "tweets":
-                with open("jsons/tweets_" + user + ".json", "r") as data_load:
+            
+            if type_data is "replies" or type_data is "tweets":
+                with open("jsons/" + type_data + "_" + user + ".json", "r") as data_load:
                     data = json.load(data_load)
             else:
                 print("Only \"tweets\" and \"replies\" are accepted type_data")
