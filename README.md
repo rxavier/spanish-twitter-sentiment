@@ -1,6 +1,6 @@
 # Spanish Twitter Sentiment
 
-This project uses [Tweepy](https://www.tweepy.org/) and Elliot Hoffman's
+This project uses [Tweepy](https://www.tweepy.org/) and Elliot Hofman's
 [senti-py](https://github.com/aylliote/senti-py) sentiment classifier for
 Spanish to evaluate average sentiment for a tweet's replies.
 
@@ -19,14 +19,14 @@ minus tweet sentiment). Saves a JSON file for each user.
     tweet ID in the data
     * `build`: if set to `True` will output a dictionary with a key for each
     user containing a list of every tweet and the associated data, and a
-    Pandas dataframe.
+    Pandas dataframe
 
 * `tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0,
                             type_data="tweets", previous=False, build=True)`:
    loads data if available and retrieves tweets or replies for a list of users.
    Evaluates sentiment for each element. Saves a JSON file for each user.
     * `user_list`: list of Twitter user handles
-    * `number_elements`: number of tweets to retrieve
+    * `number_elements`: number of elements to retrieve
     * `mean_obs`: determines how many observations to use for calculating mean
     sentiment
     * `trim`: number of elements to remove from previously loaded data (useful
@@ -37,7 +37,7 @@ minus tweet sentiment). Saves a JSON file for each user.
    * `build`: if set to `True` will output a dictionary with a key for each user
    containing a list of every tweet or reply and the associated data, the mean
    sentiment for each user (either for their tweets or the replies made to them),
-   and a Pandas dataframe.
+   and a Pandas dataframe
 
 * `build_...`: auxiliary function for the above functions.
 
