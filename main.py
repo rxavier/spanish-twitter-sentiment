@@ -152,17 +152,17 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
         if operation is "average":
             resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
             likes = resample_df.groupby(level=0)["Likes"].apply(
-                lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Likes")
+                lambda x: x.rolling(min_periods=1, window=window).mean()).reset_index(name="Likes")
             retweets = resample_df.groupby(level=0)["Retweets"].apply(
-                lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Retweets")
+                lambda x: x.rolling(min_periods=1, window=window).mean()).reset_index(name="Retweets")
             operation_title = "Average"
 
         elif operation is "sum":
             resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").sum())
             likes = resample_df.groupby(level=0)["Likes"].apply(
-                lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Likes")
+                lambda x: x.rolling(min_periods=1, window=window).sum()).reset_index(name="Likes")
             retweets = resample_df.groupby(level=0)["Retweets"].apply(
-                lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Retweets")
+                lambda x: x.rolling(min_periods=1, window=window).sum()).reset_index(name="Retweets")
             operation_title = "Sum"
 
         else:
@@ -179,7 +179,7 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
         if operation is "average":
             resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
             sentiment = resample_df.groupby(level=0)["Sentiment"].apply(
-                lambda x: x.shift().rolling(min_periods=1, window=window).mean()).reset_index(name="Sentiment")
+                lambda x: x.rolling(min_periods=1, window=window).mean()).reset_index(name="Sentiment")
             operation_title = "Average"
             merged_df = sentiment.groupby("User").apply(lambda x: x.interpolate(method="linear"))
             long = pd.melt(merged_df, id_vars=["User", "Date"],
@@ -188,7 +188,7 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
         elif operation is "count":
             resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").count())
             reply_count = resample_df.groupby(level=0)["Sentiment"].apply(
-                lambda x: x.shift().rolling(min_periods=1, window=window).sum()).reset_index(name="Replies")
+                lambda x: x.rolling(min_periods=1, window=window).sum()).reset_index(name="Replies")
             operation_title = "Count"
             merged_df = reply_count.groupby("User").apply(lambda x: x.interpolate(method="linear"))
             long = pd.melt(merged_df, id_vars=["User", "Date"],
