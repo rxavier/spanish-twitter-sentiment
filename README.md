@@ -6,7 +6,7 @@ Spanish to evaluate average sentiment for a tweet's replies.
 
 ## Description of functions
 
-* `tweets_with_replies_users(user_list, number_elements=10, trim=0,
+* `twr(user_list, number_elements=10, trim=0,
 previous=False, build=True)`: loads data if available and retrieves tweets for a
 list of users and their associated replies. Evaluates sentiment for each
 reply and for the tweet, and calculates net sentiment (mean reply sentiment
@@ -21,7 +21,7 @@ minus tweet sentiment). Saves a JSON file for each user.
     user containing a list of every tweet and the associated data, and a
     Pandas dataframe
 
-* `tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0,
+* `tor(user_list, number_elements=100, mean_obs=100, trim=0,
                             type_data="tweets", previous=False, build=True)`:
    loads data if available and retrieves tweets or replies for a list of users.
    Evaluates sentiment for each element. Saves a JSON file for each user.
@@ -46,7 +46,7 @@ minus tweet sentiment). Saves a JSON file for each user.
                plots time series of tweets or replies retrieved by the
                `tweets_or_replies_users` function
     * `user_list`: list of Twitter users to plot
-    * `data`: a Pandas dataframe output by the `tweets_or_replies_users`
+    * `data`: a Pandas dataframe output by the `tor`
                function
     * `type_data`: whether to plot tweets or replies
     * `start_date` and `end_date`: strings that define first and last date to plot
