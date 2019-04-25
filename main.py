@@ -145,29 +145,23 @@ def build_tweets_or_replies(user_list, mean_obs=100, type_data="tweets"):
 def make_plots(user_list, data, type_data="tweets", start_date=None,
                end_date=None, window=7, spacing=7, operation="average"):
 
+    resample_funcs = {"average": lambda x: x.set_index("Date").resample("1D").mean(),
+                      "sum": lambda x: x.set_index("Date").resample("1D").sum(),
+                      "count": lambda x: x.set_index("Date").resample("1D").count()}
+    rolling_funcs = {"average": lambda x: x.rolling(min_periods=1, window=window).mean(),
+                     "sum": lambda x: x.rolling(min_periods=1, window=window).sum(),
+                     "count": lambda x: x.rolling(min_periods=1, window=window).sum()}
+
     proc_df = data[["User", "Date", "Likes", "Retweets", "Sentiment"]]
 
     if type_data is "tweets":
 
-        if operation is "average":
-            resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
-            likes = resample_df.groupby(level=0)["Likes"].apply(
-                lambda x: x.rolling(min_periods=1, window=window).mean()).reset_index(name="Likes")
-            retweets = resample_df.groupby(level=0)["Retweets"].apply(
-                lambda x: x.rolling(min_periods=1, window=window).mean()).reset_index(name="Retweets")
-            operation_title = "Average"
+        resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        elif operation is "sum":
-            resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").sum())
-            likes = resample_df.groupby(level=0)["Likes"].apply(
-                lambda x: x.rolling(min_periods=1, window=window).sum()).reset_index(name="Likes")
-            retweets = resample_df.groupby(level=0)["Retweets"].apply(
-                lambda x: x.rolling(min_periods=1, window=window).sum()).reset_index(name="Retweets")
-            operation_title = "Sum"
-
-        else:
-            print("Only \"sum\" and \"average\" are accepted operations for tweets")
-            sys.exit()
+        likes = resample_df.groupby(level=0)["Likes"].apply(
+            rolling_funcs[operation]).reset_index(name="Likes")
+        retweets = resample_df.groupby(level=0)["Retweets"].apply(
+            rolling_funcs[operation]).reset_index(name="Retweets")
 
         merged_df = pd.merge(likes, retweets, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
@@ -176,27 +170,19 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
     else:
 
-        if operation is "average":
-            resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").mean())
-            sentiment = resample_df.groupby(level=0)["Sentiment"].apply(
-                lambda x: x.rolling(min_periods=1, window=window).mean()).reset_index(name="Sentiment")
-            operation_title = "Average"
-            merged_df = sentiment.groupby("User").apply(lambda x: x.interpolate(method="linear"))
-            long = pd.melt(merged_df, id_vars=["User", "Date"],
-                           value_vars=["Sentiment"], value_name="Values")
+        resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        elif operation is "count":
-            resample_df = proc_df.groupby("User").apply(lambda x: x.set_index("Date").resample("1D").count())
-            reply_count = resample_df.groupby(level=0)["Sentiment"].apply(
-                lambda x: x.rolling(min_periods=1, window=window).sum()).reset_index(name="Replies")
-            operation_title = "Count"
-            merged_df = reply_count.groupby("User").apply(lambda x: x.interpolate(method="linear"))
-            long = pd.melt(merged_df, id_vars=["User", "Date"],
-                           value_vars=["Replies"], value_name="Values")
+        sentiment = resample_df.groupby(level=0)["Sentiment"].apply(
+            rolling_funcs[operation]).reset_index(name="Sentiment")
+        replies = resample_df.groupby(level=0)["Sentiment"].apply(
+            rolling_funcs[operation]).reset_index(name="Replies")
 
-        else:
-            print("Only \"count\" and \"average\" are accepted operations for replies")
-            sys.exit()
+        merged_df = pd.merge(sentiment, replies, on=["Date", "User"],
+                             how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
+        long = pd.melt(merged_df, id_vars=["User", "Date"],
+                       value_vars=["Sentiment", "Replies"], value_name="Values")
+
+    operation_title = operation.capitalize()
 
     if start_date is None:
         start_date = min(long["Date"])
