@@ -8,7 +8,7 @@ from classifier import SentimentClassifier
 clf = SentimentClassifier()
 
 
-def tweets_with_replies(api, user, number_elements, data, trim=0, previous=False):
+def twr_base(api, user, number_elements, data, trim=0, previous=False):
 
     if previous is True:
         first_id = data[len(data) - 1][9]
@@ -86,7 +86,7 @@ def tweets_with_replies(api, user, number_elements, data, trim=0, previous=False
     return data
 
 
-def tweets_or_replies(api, user, number_elements, data, trim=0, type_data="tweets", previous=False):
+def tor_base(api, user, number_elements, data, trim=0, type_data="tweets", previous=False):
 
     if type_data is "replies":
 

@@ -1,7 +1,6 @@
 import base_functions
 import tweepy
 import json
-import sys
 import datetime
 import pandas as pd
 import seaborn as sns
@@ -16,7 +15,7 @@ auth.set_access_token(keys["access_token"], keys["access_token_secret"])
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def tweets_with_replies_users(user_list, number_elements=10, trim=0, previous=False, build=True):
+def twr(user_list, number_elements=10, trim=0, previous=False, build=True):
 
     for user in user_list:
 
@@ -31,25 +30,25 @@ def tweets_with_replies_users(user_list, number_elements=10, trim=0, previous=Fa
                 print("Successfully loaded tweets for " + user + ", downloading " + str(number_elements) +
                       " tweets prior to tweet ID " + str(data[len(data) - 1][9]) + ": " +
                       data[len(data) - 1][0])
-                base_functions.tweets_with_replies(api, user, number_elements, data, previous=True)
+                base_functions.twr_base(api, user, number_elements, data, previous=True)
             else:
                 print("Previous tweets found for " + user + ", downloading last " + str(number_elements) +
                       " tweets since tweet ID " + str(data[0][9]) + ": " + data[0][0])
-                base_functions.tweets_with_replies(api, user, number_elements, data, trim, previous=False)
+                base_functions.twr_base(api, user, number_elements, data, trim, previous=False)
 
         except IOError:
             print("No previous data found for " + user + ", downloading last " + str(number_elements) + " tweets")
             data = []
-            base_functions.tweets_with_replies(api, user, number_elements, data, trim, previous=False)
+            base_functions.twr_base(api, user, number_elements, data, trim, previous=False)
 
     if build is True:
-        return build_tweets_with_replies(user_list)
+        return twr_build(user_list)
     else:
         return None, None
 
 
-def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0,
-                            type_data="tweets", previous=False, build=True):
+def tor(user_list, number_elements=100, mean_obs=100, trim=0,
+        type_data="tweets", previous=False, build=True):
 
     for user in user_list:
 
@@ -60,7 +59,6 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
                     data = json.load(data_load)
             else:
                 print("Only \"tweets\" and \"replies\" are accepted type_data")
-                sys.exit()
 
             for element in data:
                 element[2] = datetime.datetime.strptime(element[2], "%Y-%m-%d %H:%M:%S")
@@ -69,11 +67,11 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
                 print("Successfully loaded " + type_data + " for " + user + ", downloading " + str(number_elements) +
                       " elements prior to tweet ID " + str(data[len(data) - 1][6]) + ": " +
                       data[len(data) - 1][1])
-                base_functions.tweets_or_replies(api, user, number_elements, data, type_data=type_data, previous=True)
+                base_functions.tor_base(api, user, number_elements, data, type_data=type_data, previous=True)
             else:
                 print("Previous " + type_data + " found for " + user + ", downloading last " + str(number_elements) +
                       " elements since tweet ID " + str(data[0][6]) + ": " + data[0][1])
-                base_functions.tweets_or_replies(api, user, number_elements, data, trim, type_data=type_data, previous=False)
+                base_functions.tor_base(api, user, number_elements, data, trim, type_data=type_data, previous=False)
 
         except IOError:
             print("No previous " + type_data + " found for " + user + ", downloading last " + str(number_elements) +
@@ -81,18 +79,17 @@ def tweets_or_replies_users(user_list, number_elements=100, mean_obs=100, trim=0
             data = []
 
             if type_data is "replies" or type_data is "tweets":
-                base_functions.tweets_or_replies(api, user, number_elements, data, type_data=type_data, previous=False)
+                base_functions.tor_base(api, user, number_elements, data, type_data=type_data, previous=False)
             else:
                 print("Only \"tweets\" and \"replies\" are accepted type_data")
-                sys.exit()
 
     if build is True:
-        return build_tweets_or_replies(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
+        return tor_build(user_list=user_list, mean_obs=mean_obs, type_data=type_data)
     else:
         return None, None, None
 
 
-def build_tweets_with_replies(user_list):
+def twr_build(user_list):
     full_tweets_replies_data = {}
     long_tweets_replies = []
 
@@ -110,7 +107,7 @@ def build_tweets_with_replies(user_list):
     return full_tweets_replies_data, user_df
 
 
-def build_tweets_or_replies(user_list, mean_obs=100, type_data="tweets"):
+def tor_build(user_list, mean_obs=100, type_data="tweets"):
 
     named_data = {}
     long_data = []
@@ -139,7 +136,6 @@ def build_tweets_or_replies(user_list, mean_obs=100, type_data="tweets"):
 
     else:
         print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
-        sys.exit()
 
 
 def make_plots(user_list, data, type_data="tweets", start_date=None,
@@ -158,29 +154,23 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
         resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        likes = resample_df.groupby(level=0)["Likes"].apply(
-            rolling_funcs[operation]).reset_index(name="Likes")
-        retweets = resample_df.groupby(level=0)["Retweets"].apply(
-            rolling_funcs[operation]).reset_index(name="Retweets")
+        likes = resample_df.groupby(level=0)["Likes"].apply(rolling_funcs[operation]).reset_index(name="Likes")
+        retweets = resample_df.groupby(level=0)["Retweets"].apply(rolling_funcs[operation]).reset_index(name="Retweets")
 
         merged_df = pd.merge(likes, retweets, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
-        long = pd.melt(merged_df, id_vars=["User", "Date"],
-                       value_vars=["Likes", "Retweets"], value_name="Values")
+        long = pd.melt(merged_df, id_vars=["User", "Date"], value_vars=["Likes", "Retweets"], value_name="Values")
 
     else:
 
         resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        sentiment = resample_df.groupby(level=0)["Sentiment"].apply(
-            rolling_funcs[operation]).reset_index(name="Sentiment")
-        replies = resample_df.groupby(level=0)["Sentiment"].apply(
-            rolling_funcs[operation]).reset_index(name="Replies")
+        sent = resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).reset_index(name="Sentiment")
+        replies = resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).reset_index(name="Replies")
 
-        merged_df = pd.merge(sentiment, replies, on=["Date", "User"],
+        merged_df = pd.merge(sent, replies, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
-        long = pd.melt(merged_df, id_vars=["User", "Date"],
-                       value_vars=["Sentiment", "Replies"], value_name="Values")
+        long = pd.melt(merged_df, id_vars=["User", "Date"], value_vars=["Sentiment", "Replies"], value_name="Values")
 
     operation_title = operation.capitalize()
 
