@@ -139,7 +139,7 @@ def tor_build(user_list, mean_obs=100, type_data="tweets"):
 
 
 def make_plots(user_list, data, type_data="tweets", start_date=None,
-               end_date=None, window=7, spacing=7, operation="average"):
+               end_date=None, window=7, spacing=7, operation="average", ratio=False):
 
     resample_funcs = {"average": lambda x: x.set_index("Date").resample("1D").mean(),
                       "sum": lambda x: x.set_index("Date").resample("1D").sum(),
@@ -180,7 +180,17 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
         end_date = max(long["Date"])
 
     long_filter = long.loc[(long["Date"] >= start_date) &
-                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by="Date")
+                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by=["variable",
+                                                                                                         "Date"])
+
+    if ratio is True:
+        mean_users = (long_filter[~(long_filter["User"] == user_list[0])].groupby(["Date", "variable"]).mean().\
+                      reset_index().sort_values(by=["variable", "Date"]))
+        long_filter = long_filter[long_filter["User"] == user_list[0]].reset_index(drop=True)
+        long_filter_mean = pd.merge(long_filter, mean_users, on=["Date", "variable"],
+                                    how="left")
+        long_filter["Values"] = long_filter_mean["Values_x"].divide(long_filter_mean["Values_y"])
+
     long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m-%y"))
 
     sns.set(style="darkgrid", rc={"lines.linewidth": 2})
