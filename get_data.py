@@ -182,14 +182,16 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
     long_filter = long.loc[(long["Date"] >= start_date) &
                            (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by=["variable",
                                                                                                          "Date"])
+    title_ratio = ""
 
     if ratio is True:
-        mean_users = (long_filter[~(long_filter["User"] == user_list[0])].groupby(["Date", "variable"]).mean().\
+        mean_users = (long_filter[~(long_filter["User"] == user_list[0])].groupby(["Date", "variable"]).mean().
                       reset_index().sort_values(by=["variable", "Date"]))
         long_filter = long_filter[long_filter["User"] == user_list[0]].reset_index(drop=True)
         long_filter_mean = pd.merge(long_filter, mean_users, on=["Date", "variable"],
                                     how="left")
         long_filter["Values"] = long_filter_mean["Values_x"].divide(long_filter_mean["Values_y"])
+        title_ratio = ", ratio of " + user_list[0] + " to average of remaining users"
 
     long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m-%y"))
 
@@ -201,4 +203,4 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
     g.add_legend()
     g.set_xticklabels(rotation=90)
     plt.subplots_adjust(top=0.9)
-    g.fig.suptitle(operation_title + ", last " + str(window) + " days")
+    g.fig.suptitle(operation_title + ", last " + str(window) + " days" + title_ratio)
