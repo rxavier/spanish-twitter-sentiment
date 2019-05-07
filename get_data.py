@@ -141,9 +141,20 @@ def tor_build(user_list, mean_obs=100, type_data="tweets"):
 def make_plots(user_list, data, type_data="tweets", start_date=None,
                end_date=None, window=7, spacing=7, operation="average", ratio=False):
 
-    resample_funcs = {"average": lambda x: x.set_index("Date").resample("1D").mean(),
-                      "sum": lambda x: x.set_index("Date").resample("1D").sum(),
-                      "count": lambda x: x.set_index("Date").resample("1D").count()}
+    if start_date is None:
+        start_date = min(data["Date"])
+    if end_date is None:
+        end_date = max(data["Date"])
+
+    resample_funcs = {"average": (lambda x: x.set_index("Date").resample("1D").mean().
+                                  reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
+                                                        datetime.timedelta(days=window), end_date, freq="D"))),
+                      "sum": (lambda x: x.set_index("Date").resample("1D").sum().
+                              reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
+                                                    datetime.timedelta(days=window), end_date, freq="D"))),
+                      "count": (lambda x: x.set_index("Date").resample("1D").count().
+                                reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
+                                                      datetime.timedelta(days=window), end_date, freq="D")))}
     rolling_funcs = {"average": lambda x: x.rolling(min_periods=1, window=window).mean(),
                      "sum": lambda x: x.rolling(min_periods=1, window=window).sum(),
                      "count": lambda x: x.rolling(min_periods=1, window=window).sum()}
@@ -154,8 +165,10 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
         resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        likes = resample_df.groupby(level=0)["Likes"].apply(rolling_funcs[operation]).reset_index(name="Likes")
-        retweets = resample_df.groupby(level=0)["Retweets"].apply(rolling_funcs[operation]).reset_index(name="Retweets")
+        likes = (resample_df.groupby(level=0)["Likes"].apply(rolling_funcs[operation]).
+                 reset_index().rename(columns={"level_1": "Date"}))
+        retweets = (resample_df.groupby(level=0)["Retweets"].apply(rolling_funcs[operation]).
+                    reset_index().rename(columns={"level_1": "Date"}))
 
         merged_df = pd.merge(likes, retweets, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
@@ -165,19 +178,16 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
         resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        sent = resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).reset_index(name="Sentiment")
-        replies = resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).reset_index(name="Replies")
+        sent = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).
+                reset_index().rename(columns={"level_1": "Date"}))
+        replies = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).
+                   reset_index().rename(columns={"level_1": "Date", "Sentiment": "Replies"}))
 
         merged_df = pd.merge(sent, replies, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
         long = pd.melt(merged_df, id_vars=["User", "Date"], value_vars=["Sentiment", "Replies"], value_name="Values")
 
     operation_title = operation.capitalize()
-
-    if start_date is None:
-        start_date = min(long["Date"])
-    if end_date is None:
-        end_date = max(long["Date"])
 
     long_filter = long.loc[(long["Date"] >= start_date) &
                            (long["Date"] <= end_date)].loc[long["User"].isin(user_list)]
