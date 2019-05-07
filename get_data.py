@@ -176,11 +176,12 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
     else:
 
-        resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
-
-        sent = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).
+        resample_df = proc_df.groupby("User").apply(resample_funcs["average"])
+        sent = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs["average"]).
                 reset_index().rename(columns={"level_1": "Date"}))
-        replies = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).
+
+        resample_df = proc_df.groupby("User").apply(resample_funcs["count"])
+        replies = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs["count"]).
                    reset_index().rename(columns={"level_1": "Date", "Sentiment": "Replies"}))
 
         merged_df = pd.merge(sent, replies, on=["Date", "User"],
@@ -212,5 +213,8 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
     g.add_legend()
     g.set_xticklabels(rotation=90)
     plt.subplots_adjust(top=0.9)
-    g.fig.suptitle(operation_title + ", last " + str(window) + " days" + title_ratio)
+    if type_data is "tweets":
+        g.fig.suptitle(operation_title + ", last " + str(window) + " days" + title_ratio)
+    else:
+        g.fig.suptitle("Average sentiment and reply count, last " + str(window) + " days" + title_ratio)
     return long_filter
