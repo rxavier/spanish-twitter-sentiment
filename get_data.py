@@ -203,3 +203,4 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
     g.set_xticklabels(rotation=90)
     plt.subplots_adjust(top=0.9)
     g.fig.suptitle(operation_title + ", last " + str(window) + " days" + title_ratio)
+    return long_filter
