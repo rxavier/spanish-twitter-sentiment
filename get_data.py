@@ -180,13 +180,12 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
         end_date = max(long["Date"])
 
     long_filter = long.loc[(long["Date"] >= start_date) &
-                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by=["variable",
-                                                                                                         "Date"])
+                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)]
     title_ratio = ""
 
     if ratio is True:
         mean_users = (long_filter[~(long_filter["User"] == user_list[0])].groupby(["Date", "variable"]).mean().
-                      reset_index().sort_values(by=["variable", "Date"]))
+                      reset_index())
         long_filter = long_filter[long_filter["User"] == user_list[0]].reset_index(drop=True)
         long_filter_mean = pd.merge(long_filter, mean_users, on=["Date", "variable"],
                                     how="left")
