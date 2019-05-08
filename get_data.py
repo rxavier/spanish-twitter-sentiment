@@ -139,7 +139,7 @@ def tor_build(user_list, mean_obs=100, type_data="tweets"):
 
 
 def make_plots(user_list, data, type_data="tweets", start_date=None,
-               end_date=None, window=7, spacing=7, operation="average", user_ratio=None):
+               end_date=None, window=7, spacing=7, min_window=1, operation="average", user_ratio=None):
 
     if start_date is None:
         start_date = min(data["Date"])
@@ -155,9 +155,9 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
                       "count": (lambda x: x.set_index("Date").resample("1D").count().
                                 reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
                                                       datetime.timedelta(days=window), end_date, freq="D")))}
-    rolling_funcs = {"average": lambda x: x.rolling(min_periods=1, window=window).mean(),
-                     "sum": lambda x: x.rolling(min_periods=1, window=window).sum(),
-                     "count": lambda x: x.rolling(min_periods=1, window=window).sum()}
+    rolling_funcs = {"average": lambda x: x.rolling(min_periods=min_window, window=window).mean(),
+                     "sum": lambda x: x.rolling(min_periods=min_window, window=window).sum(),
+                     "count": lambda x: x.rolling(min_periods=min_window, window=window).sum()}
 
     proc_df = data[["User", "Date", "Likes", "Retweets", "Sentiment"]]
 
