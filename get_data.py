@@ -139,7 +139,7 @@ def tor_build(user_list, mean_obs=100, type_data="tweets"):
 
 
 def make_plots(user_list, data, type_data="tweets", start_date=None,
-               end_date=None, window=7, spacing=7, operation="average", ratio=False):
+               end_date=None, window=7, spacing=7, operation="average", ratio=None):
 
     if start_date is None:
         start_date = min(data["Date"])
@@ -194,14 +194,14 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
                            (long["Date"] <= end_date)].loc[long["User"].isin(user_list)]
     title_ratio = ""
 
-    if ratio is True:
-        mean_users = (long_filter[~(long_filter["User"] == user_list[0])].groupby(["Date", "variable"]).mean().
+    if ratio is not None:
+        mean_users = (long_filter[~(long_filter["User"] == ratio)].groupby(["Date", "variable"]).mean().
                       reset_index())
-        long_filter = long_filter[long_filter["User"] == user_list[0]].reset_index(drop=True)
+        long_filter = long_filter[long_filter["User"] == ratio].reset_index(drop=True)
         long_filter_mean = pd.merge(long_filter, mean_users, on=["Date", "variable"],
                                     how="left")
         long_filter["Values"] = long_filter_mean["Values_x"].divide(long_filter_mean["Values_y"])
-        title_ratio = ", ratio of " + user_list[0] + " to average of remaining users"
+        title_ratio = ", ratio of " + ratio + " to average of remaining users"
 
     long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m-%y"))
 
