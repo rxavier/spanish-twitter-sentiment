@@ -139,14 +139,25 @@ def tor_build(user_list, mean_obs=100, type_data="tweets"):
 
 
 def make_plots(user_list, data, type_data="tweets", start_date=None,
-               end_date=None, window=7, spacing=7, operation="average"):
+               end_date=None, window=7, spacing=7, min_window=1, operation="average", user_ratio=None):
 
-    resample_funcs = {"average": lambda x: x.set_index("Date").resample("1D").mean(),
-                      "sum": lambda x: x.set_index("Date").resample("1D").sum(),
-                      "count": lambda x: x.set_index("Date").resample("1D").count()}
-    rolling_funcs = {"average": lambda x: x.rolling(min_periods=1, window=window).mean(),
-                     "sum": lambda x: x.rolling(min_periods=1, window=window).sum(),
-                     "count": lambda x: x.rolling(min_periods=1, window=window).sum()}
+    if start_date is None:
+        start_date = min(data["Date"])
+    if end_date is None:
+        end_date = max(data["Date"])
+
+    resample_funcs = {"average": (lambda x: x.set_index("Date").resample("1D").mean().
+                                  reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
+                                                        datetime.timedelta(days=window), end_date, freq="D"))),
+                      "sum": (lambda x: x.set_index("Date").resample("1D").sum().
+                              reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
+                                                    datetime.timedelta(days=window), end_date, freq="D"))),
+                      "count": (lambda x: x.set_index("Date").resample("1D").count().
+                                reindex(pd.date_range(datetime.datetime.strptime(start_date, "%Y-%m-%d") -
+                                                      datetime.timedelta(days=window), end_date, freq="D")))}
+    rolling_funcs = {"average": lambda x: x.rolling(min_periods=min_window, window=window).mean(),
+                     "sum": lambda x: x.rolling(min_periods=min_window, window=window).sum(),
+                     "count": lambda x: x.rolling(min_periods=min_window, window=window).sum()}
 
     proc_df = data[["User", "Date", "Likes", "Retweets", "Sentiment"]]
 
@@ -154,8 +165,10 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
         resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
 
-        likes = resample_df.groupby(level=0)["Likes"].apply(rolling_funcs[operation]).reset_index(name="Likes")
-        retweets = resample_df.groupby(level=0)["Retweets"].apply(rolling_funcs[operation]).reset_index(name="Retweets")
+        likes = (resample_df.groupby(level=0)["Likes"].apply(rolling_funcs[operation]).
+                 reset_index().rename(columns={"level_1": "Date"}))
+        retweets = (resample_df.groupby(level=0)["Retweets"].apply(rolling_funcs[operation]).
+                    reset_index().rename(columns={"level_1": "Date"}))
 
         merged_df = pd.merge(likes, retweets, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
@@ -163,10 +176,13 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
     else:
 
-        resample_df = proc_df.groupby("User").apply(resample_funcs[operation])
+        resample_df = proc_df.groupby("User").apply(resample_funcs["average"])
+        sent = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs["average"]).
+                reset_index().rename(columns={"level_1": "Date"}))
 
-        sent = resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).reset_index(name="Sentiment")
-        replies = resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs[operation]).reset_index(name="Replies")
+        resample_df = proc_df.groupby("User").apply(resample_funcs["count"])
+        replies = (resample_df.groupby(level=0)["Sentiment"].apply(rolling_funcs["count"]).
+                   reset_index().rename(columns={"level_1": "Date", "Sentiment": "Replies"}))
 
         merged_df = pd.merge(sent, replies, on=["Date", "User"],
                              how="left").groupby("User").apply(lambda x: x.interpolate(method="linear"))
@@ -174,13 +190,19 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
 
     operation_title = operation.capitalize()
 
-    if start_date is None:
-        start_date = min(long["Date"])
-    if end_date is None:
-        end_date = max(long["Date"])
-
     long_filter = long.loc[(long["Date"] >= start_date) &
-                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)].sort_values(by="Date")
+                           (long["Date"] <= end_date)].loc[long["User"].isin(user_list)]
+    title_ratio = ""
+
+    if user_ratio is not None:
+        mean_users = (long_filter[~(long_filter["User"] == user_ratio)].groupby(["Date", "variable"]).mean().
+                      reset_index())
+        long_filter = long_filter[long_filter["User"] == user_ratio].reset_index(drop=True)
+        long_filter_mean = pd.merge(long_filter, mean_users, on=["Date", "variable"],
+                                    how="left")
+        long_filter["Values"] = long_filter_mean["Values_x"].divide(long_filter_mean["Values_y"])
+        title_ratio = ", ratio of " + user_ratio + " to average of remaining users"
+
     long_filter["Date"] = long_filter["Date"].map(lambda x: x.strftime("%d-%m-%y"))
 
     sns.set(style="darkgrid", rc={"lines.linewidth": 2})
@@ -191,4 +213,8 @@ def make_plots(user_list, data, type_data="tweets", start_date=None,
     g.add_legend()
     g.set_xticklabels(rotation=90)
     plt.subplots_adjust(top=0.9)
-    g.fig.suptitle(operation_title + ", last " + str(window) + " days")
+    if type_data is "tweets":
+        g.fig.suptitle(operation_title + ", last " + str(window) + " days" + title_ratio)
+    else:
+        g.fig.suptitle("Average sentiment and reply count, last " + str(window) + " days" + title_ratio)
+    return long_filter
