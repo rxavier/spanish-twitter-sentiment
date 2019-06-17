@@ -157,6 +157,44 @@ def tor_base(api, user, number_elements, data, trim=0, type_data="tweets", previ
     return data
 
 
+def search_base(api, location, language, user, extra, number_elements, data, previous=False):
+
+    search_term = f"@{user} OR {extra}"
+
+    if previous is True:
+
+        first_id = data[len(data) - 1][6]
+        element_cursor = tweepy.Cursor(api.search, q=search_term, geocode=location, lang=language,
+                                       max_id=first_id, tweet_mode="extended").items(number_elements)
+    else:
+
+        if len(data) == 0:
+            element_cursor = tweepy.Cursor(api.search, q=search_term, geocode=location,
+                                           lang=language, tweet_mode="extended").items(number_elements)
+        else:
+            last_id = data[0][6]
+            element_cursor = tweepy.Cursor(api.search, q=search_term, geocode=location, lang=language,
+                                           since_id=last_id, tweet_mode="extended").items(number_elements)
+
+    for element in element_cursor:
+
+        if not element.retweeted and ("RT @" not in element.full_text):
+            reply_to_evaluate = re.sub("@[A-z0-9_]+|http\\S+", "", element.full_text).strip()
+
+            if len(reply_to_evaluate) < 4:
+                sentiment = None
+            else:
+                sentiment = clf.predict(reply_to_evaluate)
+
+            data.append([element.author.screen_name, element.full_text, element.created_at,
+                         element.favorite_count, element.retweet_count, sentiment, element.id])
+
+    data = sorted(data, key=lambda x: x[2], reverse=True)
+    with open("jsons/search_" + user + ".json", "w") as data_dump:
+        json.dump(data, data_dump, default=datetime_to_str)
+    return data
+
+
 def datetime_to_str(data):
     if isinstance(data, datetime.datetime):
         return data.__str__()
