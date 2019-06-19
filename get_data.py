@@ -89,6 +89,44 @@ def tor(user_list, number_elements=100, mean_obs=100, trim=0,
         return None, None, None
 
 
+def search_hits(user_list, extra_list, location, language, number_elements=100,
+                mean_obs=100, previous=False, build=True):
+
+    for user, extra in zip(user_list, extra_list):
+
+        try:
+
+            with open("jsons/search_" + user + ".json", "r") as data_load:
+                data = json.load(data_load)
+
+            for element in data:
+                element[2] = datetime.datetime.strptime(element[2], "%Y-%m-%d %H:%M:%S")
+
+            if previous is True:
+                print("Successfully loaded data for " + user + ", downloading " + str(number_elements) +
+                      " elements prior to tweet ID " + str(data[len(data) - 1][6]) + ": " +
+                      data[len(data) - 1][1])
+                base_functions.search_base(api, location=location, language=language, user=user, extra=extra,
+                                           number_elements=number_elements, data=data, previous=True)
+            else:
+                print("Previous data found for " + user + ", downloading last " + str(number_elements) +
+                      " elements since tweet ID " + str(data[0][6]) + ": " + data[0][1])
+                base_functions.search_base(api, location=location, language=language, user=user, extra=extra,
+                                           number_elements=number_elements, data=data, previous=False)
+
+        except IOError:
+            print("No previous data found for " + user + ", downloading last " + str(number_elements) +
+                  " elements")
+            data = []
+            base_functions.search_base(api, location=location, language=language, user=user, extra=extra,
+                                       number_elements=number_elements, data=data, previous=False)
+
+    if build is True:
+        return search_build(user_list=user_list, mean_obs=mean_obs)
+    else:
+        return None, None, None
+
+
 def twr_build(user_list):
     full_tweets_replies_data = {}
     long_tweets_replies = []
@@ -136,6 +174,32 @@ def tor_build(user_list, mean_obs=100, type_data="tweets"):
 
     else:
         print("Only \"tweets\" or \"replies\" are accepted arguments for type_data")
+
+
+def search_build(user_list, mean_obs=100):
+
+    named_data = {}
+    long_data = []
+
+    for user in user_list:
+        with open("jsons/search_" + user + ".json", "r") as dl:
+            data = json.load(dl)
+
+        for element in data:
+            element[2] = datetime.datetime.strptime(element[2], "%Y-%m-%d %H:%M:%S")
+            long_data.append([user, element[1], element[2], element[3], element[4], element[5]])
+
+        named_data.update({user: data})
+
+    df_data = pd.DataFrame(long_data)
+    df_data.columns = ["User", "Tweet", "Date", "Likes", "Retweets", "Sentiment"]
+
+    mean_elements = {}
+    for user in named_data.keys():
+        elements = named_data[user]
+        mean_elements.update({user: mean([x[5] for x in elements[0:mean_obs] if x[5] is not None])})
+
+    return named_data, mean_elements, df_data
 
 
 def make_plots(user_list, data, type_data="tweets", start_date=None,
